@@ -71,7 +71,9 @@ func (s *ManifestsService) List(opts *ManifestListOptions) ([]*Manifest, error) 
 			return nil, err
 		}
 
-		fmt.Printf("Raw response from API: %+v\n", rawResp)
+		if s.client.debug {
+			fmt.Printf("Raw response from API: %+v\n", rawResp)
+		}
 
 		// Extract manifests from the catalogManifest field in the data
 		var manifests []*Manifest
@@ -96,10 +98,14 @@ func (s *ManifestsService) List(opts *ManifestListOptions) ([]*Manifest, error) 
 									if manifest.ID == "" && manifest.MongoID != "" {
 										manifest.ID = manifest.MongoID
 									}
-									fmt.Printf("Parsed manifest: %+v\n", manifest)
+									if s.client.debug {
+										fmt.Printf("Parsed manifest: %+v\n", manifest)
+									}
 									manifests = append(manifests, &manifest)
 								} else {
-									fmt.Printf("Error unmarshaling manifest: %v\n", err)
+									if s.client.debug {
+										fmt.Printf("Error unmarshaling manifest: %v\n", err)
+									}
 								}
 							}
 						}
