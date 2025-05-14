@@ -20,8 +20,8 @@ type Operation struct {
 	Type        string                 `json:"type,omitempty"`
 	Metadata    map[string]interface{} `json:"metadata,omitempty"`
 	CreatedBy   string                 `json:"createdBy,omitempty"`
-	CreatedOn   string                 `json:"createdOn,omitempty"`
-	UpdatedOn   string                 `json:"updatedOn,omitempty"`
+	CreatedOn   interface{}            `json:"createdOn,omitempty"`
+	UpdatedOn   interface{}            `json:"updatedOn,omitempty"`
 	// Add other fields as needed
 }
 

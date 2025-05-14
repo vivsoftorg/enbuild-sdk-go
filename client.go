@@ -7,12 +7,14 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
 const (
 	defaultBaseURL = "https://api.enbuild.com/api/v1/"
 	defaultTimeout = 30 * time.Second
+	apiVersionPath = "/api/v1/"
 )
 
 // Client represents the ENBUILD API client
@@ -23,12 +25,14 @@ type Client struct {
 	authToken  string
 
 	// Services
-	Users      *UsersService
-	Roles      *RolesService
-	Operations *OperationsService
-	Repository *RepositoryService
-	Manifests  *ManifestsService
-	MLDataset  *MLDatasetService
+	Users         *UsersService
+	Roles         *RolesService
+	Operations    *OperationsService
+	Repository    *RepositoryService
+	Manifests     *ManifestsService
+	MLDataset     *MLDatasetService
+	AdminSettings *AdminSettingsService
+	AuthLocal     *AuthLocalService
 }
 
 // ClientOption is a function that configures a Client
@@ -57,6 +61,8 @@ func NewClient(options ...ClientOption) (*Client, error) {
 	c.Repository = &RepositoryService{client: c}
 	c.Manifests = &ManifestsService{client: c}
 	c.MLDataset = &MLDatasetService{client: c}
+	c.AdminSettings = &AdminSettingsService{client: c}
+	c.AuthLocal = &AuthLocalService{client: c}
 
 	return c, nil
 }
@@ -64,6 +70,16 @@ func NewClient(options ...ClientOption) (*Client, error) {
 // WithBaseURL sets the base URL for the API client
 func WithBaseURL(baseURL string) ClientOption {
 	return func(c *Client) error {
+		// Ensure the base URL ends with the API version path
+		if !strings.HasSuffix(baseURL, apiVersionPath) {
+			if !strings.HasSuffix(baseURL, "/") {
+				baseURL += "/"
+			}
+			if !strings.HasSuffix(baseURL, "api/v1/") {
+				baseURL += "api/v1/"
+			}
+		}
+		
 		parsedURL, err := url.Parse(baseURL)
 		if err != nil {
 			return err

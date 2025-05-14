@@ -17,8 +17,8 @@ type MLDataset struct {
 	Type        string                 `json:"type,omitempty"`
 	Size        int64                  `json:"size,omitempty"`
 	Metadata    map[string]interface{} `json:"metadata,omitempty"`
-	CreatedOn   string                 `json:"createdOn,omitempty"`
-	UpdatedOn   string                 `json:"updatedOn,omitempty"`
+	CreatedOn   interface{}            `json:"createdOn,omitempty"`
+	UpdatedOn   interface{}            `json:"updatedOn,omitempty"`
 	// Add other fields as needed
 }
 

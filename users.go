@@ -13,14 +13,14 @@ type UsersService struct {
 
 // User represents an ENBUILD user
 type User struct {
-	ID        string `json:"id,omitempty"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	FirstName string `json:"firstName,omitempty"`
-	LastName  string `json:"lastName,omitempty"`
-	CreatedBy string `json:"createdBy,omitempty"`
-	CreatedOn string `json:"createdOn,omitempty"`
-	UpdatedOn string `json:"updatedOn,omitempty"`
+	ID        string      `json:"id,omitempty"`
+	Username  string      `json:"username"`
+	Email     string      `json:"email"`
+	FirstName string      `json:"firstName,omitempty"`
+	LastName  string      `json:"lastName,omitempty"`
+	CreatedBy string      `json:"createdBy,omitempty"`
+	CreatedOn interface{} `json:"createdOn,omitempty"`
+	UpdatedOn interface{} `json:"updatedOn,omitempty"`
 	// Add other fields as needed
 }
 

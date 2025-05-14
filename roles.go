@@ -12,12 +12,12 @@ type RolesService struct {
 
 // Role represents an ENBUILD role
 type Role struct {
-	ID          string   `json:"id,omitempty"`
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Permissions []string `json:"permissions,omitempty"`
-	CreatedOn   string   `json:"createdOn,omitempty"`
-	UpdatedOn   string   `json:"updatedOn,omitempty"`
+	ID          string      `json:"id,omitempty"`
+	Name        string      `json:"name"`
+	Description string      `json:"description,omitempty"`
+	Permissions []string    `json:"permissions,omitempty"`
+	CreatedOn   interface{} `json:"createdOn,omitempty"`
+	UpdatedOn   interface{} `json:"updatedOn,omitempty"`
 	// Add other fields as needed
 }
 

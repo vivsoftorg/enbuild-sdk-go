@@ -12,14 +12,14 @@ type AuthLocalService struct {
 
 // LocalAdmin represents a local admin user
 type LocalAdmin struct {
-	ID        string `json:"id,omitempty"`
-	Username  string `json:"username"`
-	Password  string `json:"password,omitempty"`
-	Email     string `json:"email"`
-	FirstName string `json:"firstName,omitempty"`
-	LastName  string `json:"lastName,omitempty"`
-	CreatedOn string `json:"createdOn,omitempty"`
-	UpdatedOn string `json:"updatedOn,omitempty"`
+	ID        string      `json:"id,omitempty"`
+	Username  string      `json:"username"`
+	Password  string      `json:"password,omitempty"`
+	Email     string      `json:"email"`
+	FirstName string      `json:"firstName,omitempty"`
+	LastName  string      `json:"lastName,omitempty"`
+	CreatedOn interface{} `json:"createdOn,omitempty"`
+	UpdatedOn interface{} `json:"updatedOn,omitempty"`
 	// Add other fields as needed
 }
 

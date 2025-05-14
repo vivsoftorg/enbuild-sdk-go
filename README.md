@@ -49,11 +49,12 @@ The SDK can be configured using environment variables:
 
 - `ENBUILD_API_TOKEN`: Authentication token for the API (required)
 - `ENBUILD_BASE_URL`: Base URL for the API (optional, defaults to the production API endpoint)
+  - Note: The SDK will automatically append `/api/v1/` to the base URL if it's not already included
 
 Example:
 ```bash
 export ENBUILD_API_TOKEN="your-api-token"
-export ENBUILD_BASE_URL="https://api.staging.enbuild.com/api/v1/"
+export ENBUILD_BASE_URL="https://enbuild-dev.vivplatform.io/enbuild-bk"
 ```
 
 You can also configure the client programmatically:
@@ -126,3 +127,20 @@ if err != nil {
 ## License
 
 This SDK is distributed under the MIT license.
+
+## Notes on API Response Handling
+
+- Timestamp fields like `createdOn` and `updatedOn` are defined as `interface{}` in the SDK models because the API may return them as either numeric timestamps or formatted strings.
+- When working with these fields, you may need to check the type and convert accordingly:
+
+```go
+// Example of handling a timestamp field
+if timestamp, ok := user.CreatedOn.(float64); ok {
+    // Handle numeric timestamp
+    createdTime := time.Unix(int64(timestamp/1000), 0)
+    fmt.Printf("Created on: %s\n", createdTime.Format(time.RFC3339))
+} else if timestampStr, ok := user.CreatedOn.(string); ok {
+    // Handle string timestamp
+    fmt.Printf("Created on: %s\n", timestampStr)
+}
+```

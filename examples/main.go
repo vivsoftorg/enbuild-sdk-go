@@ -32,12 +32,22 @@ func main() {
 		log.Fatalf("Error creating client: %v", err)
 	}
 
+	// List manifests
+	manifests, err := client.Manifests.List()
+	if err != nil {
+		log.Fatalf("Error listing manifests: %v", err)
+	}
+	fmt.Printf("Found %d manifests\n", len(manifests))
+	for _, manifest := range manifests {
+		fmt.Printf("- %s (%s)\n", manifest.Name, manifest.ID)
+	}
+
 	// List users
 	users, err := client.Users.List(nil)
 	if err != nil {
 		log.Fatalf("Error listing users: %v", err)
 	}
-	fmt.Printf("Found %d users\n", len(users))
+	fmt.Printf("\nFound %d users\n", len(users))
 	for _, user := range users {
 		fmt.Printf("- %s (%s)\n", user.Username, user.Email)
 	}

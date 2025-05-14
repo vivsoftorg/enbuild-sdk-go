@@ -17,8 +17,8 @@ type Manifest struct {
 	Description string                 `json:"description,omitempty"`
 	Content     map[string]interface{} `json:"content,omitempty"`
 	Version     string                 `json:"version,omitempty"`
-	CreatedOn   string                 `json:"createdOn,omitempty"`
-	UpdatedOn   string                 `json:"updatedOn,omitempty"`
+	CreatedOn   interface{}            `json:"createdOn,omitempty"`
+	UpdatedOn   interface{}            `json:"updatedOn,omitempty"`
 	// Add other fields as needed
 }
 
