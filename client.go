@@ -23,6 +23,7 @@ type Client struct {
 	UserAgent  string
 	httpClient *http.Client
 	authToken  string
+	debug      bool
 
 	// Services
 	Users         *UsersService
@@ -105,6 +106,14 @@ func WithAuthToken(token string) ClientOption {
 	}
 }
 
+// WithDebug enables debug mode for the client
+func WithDebug(debug bool) ClientOption {
+	return func(c *Client) error {
+		c.debug = debug
+		return nil
+	}
+}
+
 // newRequest creates a new HTTP request
 func (c *Client) newRequest(method, path string, body interface{}) (*http.Request, error) {
 	u, err := c.BaseURL.Parse(path)
@@ -142,11 +151,25 @@ func (c *Client) newRequest(method, path string, body interface{}) (*http.Reques
 
 // do sends an HTTP request and returns an HTTP response
 func (c *Client) do(req *http.Request, v interface{}) (*http.Response, error) {
+	if c.debug {
+		fmt.Printf("Making request to: %s %s\n", req.Method, req.URL.String())
+	}
+	
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if c.debug {
+		// Read the response body for debugging
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		bodyString := string(bodyBytes)
+		fmt.Printf("Response from %s: %s\n", req.URL.String(), bodyString)
+		
+		// Create a new reader with the same data for the JSON decoder
+		resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return resp, fmt.Errorf("API error: %s", resp.Status)

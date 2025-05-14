@@ -144,3 +144,23 @@ if timestamp, ok := user.CreatedOn.(float64); ok {
     fmt.Printf("Created on: %s\n", timestampStr)
 }
 ```
+### VCS-Specific Manifests
+
+The SDK supports accessing VCS-specific manifests (GitHub or GitLab):
+
+```go
+// List GitHub manifests
+githubManifests, err := client.Manifests.List(&enbuild.ManifestListOptions{
+    VCS: enbuild.VCSTypeGitHub,
+})
+
+// List GitLab manifests
+gitlabManifests, err := client.Manifests.List(&enbuild.ManifestListOptions{
+    VCS: enbuild.VCSTypeGitLab,
+})
+
+// Get a specific GitHub manifest by ID
+manifest, err := client.Manifests.Get(id, &enbuild.ManifestListOptions{
+    VCS: enbuild.VCSTypeGitHub,
+})
+```
