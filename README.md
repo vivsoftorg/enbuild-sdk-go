@@ -164,3 +164,5 @@ manifest, err := client.Manifests.Get(id, &enbuild.ManifestListOptions{
     VCS: enbuild.VCSTypeGitHub,
 })
 ```
+
+Note: The GitHub and GitLab manifest endpoints return data in a different structure than the standard endpoints. The SDK handles this difference automatically by parsing the `catalogManifest` array in the response.

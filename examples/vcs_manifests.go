@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/vivsoftorg/enbuild-sdk-go"
 )
@@ -18,7 +19,7 @@ func main() {
 	// Create client options
 	options := []enbuild.ClientOption{
 		enbuild.WithAuthToken(token),
-		enbuild.WithDebug(true), // Enable debug mode
+		enbuild.WithDebug(false), // Disable debug mode
 	}
 
 	// Get base URL from environment variable if provided
@@ -42,52 +43,21 @@ func main() {
 		log.Printf("Error listing GitHub manifests: %v", err)
 	} else {
 		fmt.Printf("Found %d GitHub manifests\n", len(githubManifests))
-		for _, manifest := range githubManifests {
-			fmt.Printf("- %s (%s)\n", manifest.Name, manifest.ID)
+		for i, manifest := range githubManifests {
+			idStr := ""
+			switch id := manifest.ID.(type) {
+			case string:
+				idStr = id
+			case float64:
+				idStr = fmt.Sprintf("%.0f", id)
+			case int:
+				idStr = fmt.Sprintf("%d", id)
+			default:
+				idStr = fmt.Sprintf("%v (type: %s)", manifest.ID, reflect.TypeOf(manifest.ID))
+			}
+			
+			fmt.Printf("%d. ID: %s, Name: %s, Type: %s, Slug: %s\n", 
+				i+1, idStr, manifest.Name, manifest.Type, manifest.Slug)
 		}
 	}
-
-	// fmt.Println("\nFetching GitLab manifests...")
-	// // List GitLab manifests
-	// gitlabManifests, err := client.Manifests.List(&enbuild.ManifestListOptions{
-	// 	VCS: enbuild.VCSTypeGitLab,
-	// })
-	// if err != nil {
-	// 	log.Printf("Error listing GitLab manifests: %v", err)
-	// } else {
-	// 	fmt.Printf("Found %d GitLab manifests\n", len(gitlabManifests))
-	// 	for _, manifest := range gitlabManifests {
-	// 		fmt.Printf("- %s (%s)\n", manifest.Name, manifest.ID)
-	// 	}
-	// }
-
-	// fmt.Println("\nFetching regular manifests...")
-	// // List regular manifests (no VCS specified)
-	// manifests, err := client.Manifests.List(nil)
-	// if err != nil {
-	// 	log.Printf("Error listing regular manifests: %v", err)
-	// } else {
-	// 	fmt.Printf("Found %d regular manifests\n", len(manifests))
-	// 	for _, manifest := range manifests {
-	// 		fmt.Printf("- %s (%s)\n", manifest.Name, manifest.ID)
-	// 	}
-	// }
-
-	// // Get a specific GitHub manifest by ID if any exist
-	// if len(githubManifests) > 0 {
-	// 	id := githubManifests[0].ID
-	// 	fmt.Printf("\nFetching GitHub manifest with ID: %s\n", id)
-	// 	manifest, err := client.Manifests.Get(id, &enbuild.ManifestListOptions{
-	// 		VCS: enbuild.VCSTypeGitHub,
-	// 	})
-	// 	if err != nil {
-	// 		log.Printf("Error getting GitHub manifest: %v", err)
-	// 	} else {
-	// 		fmt.Printf("GitHub Manifest Details:\n")
-	// 		fmt.Printf("- ID: %s\n", manifest.ID)
-	// 		fmt.Printf("- Name: %s\n", manifest.Name)
-	// 		fmt.Printf("- Description: %s\n", manifest.Description)
-	// 		fmt.Printf("- Version: %s\n", manifest.Version)
-	// 	}
-	// }
 }

@@ -1,6 +1,7 @@
 package enbuild
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -23,7 +24,8 @@ type ManifestsService struct {
 
 // Manifest represents an ENBUILD manifest
 type Manifest struct {
-	ID          string                 `json:"id,omitempty"`
+	ID          interface{}            `json:"id,omitempty"`
+	MongoID     interface{}            `json:"_id,omitempty"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
 	Content     map[string]interface{} `json:"content,omitempty"`
@@ -31,6 +33,8 @@ type Manifest struct {
 	CreatedOn   interface{}            `json:"createdOn,omitempty"`
 	UpdatedOn   interface{}            `json:"updatedOn,omitempty"`
 	VCS         VCSType                `json:"vcs,omitempty"`
+	Slug        string                 `json:"slug,omitempty"`
+	Type        string                 `json:"type,omitempty"`
 	// Add other fields as needed
 }
 
@@ -58,48 +62,53 @@ func (s *ManifestsService) List(opts *ManifestListOptions) ([]*Manifest, error) 
 		return nil, err
 	}
 
-	// Try different response formats for VCS-specific endpoints
+	// For GitHub/GitLab endpoints, the response structure is different
 	if opts != nil && opts.VCS != "" {
-		// First try the nested manifests structure
-		var vcsResp struct {
-			Data struct {
-				Manifests []*Manifest `json:"manifests"`
-			} `json:"data"`
-		}
-		
-		_, err = s.client.do(req, &vcsResp)
-		if err == nil && len(vcsResp.Data.Manifests) > 0 {
-			return vcsResp.Data.Manifests, nil
-		}
-		
-		// If that fails, try direct array in data field
-		req, err = s.client.newRequest(http.MethodGet, path, nil)
+		// Parse as a raw map to inspect the structure
+		var rawResp map[string]interface{}
+		_, err = s.client.do(req, &rawResp)
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Printf("Raw response from API: %+v\n", rawResp)
+
+		// Extract manifests from the catalogManifest field in the data
+		var manifests []*Manifest
 		
-		var directResp struct {
-			Data []*Manifest `json:"data"`
-		}
-		_, err = s.client.do(req, &directResp)
-		if err == nil && len(directResp.Data) > 0 {
-			return directResp.Data, nil
+		if dataField, ok := rawResp["data"]; ok {
+			if dataObj, ok := dataField.(map[string]interface{}); ok {
+				if catalogManifestField, ok := dataObj["catalogManifest"]; ok {
+					if catalogArray, ok := catalogManifestField.([]interface{}); ok {
+						for _, item := range catalogArray {
+							if manifestMap, ok := item.(map[string]interface{}); ok {
+								// Set ID field from either "id" or "_id" field
+								if id, ok := manifestMap["id"]; ok {
+									manifestMap["ID"] = id
+								} else if id, ok := manifestMap["_id"]; ok {
+									manifestMap["ID"] = id
+								}
+								
+								manifestBytes, _ := json.Marshal(manifestMap)
+								var manifest Manifest
+								if err := json.Unmarshal(manifestBytes, &manifest); err == nil {
+									// If ID is still empty, try to use MongoID
+									if manifest.ID == "" && manifest.MongoID != "" {
+										manifest.ID = manifest.MongoID
+									}
+									fmt.Printf("Parsed manifest: %+v\n", manifest)
+									manifests = append(manifests, &manifest)
+								} else {
+									fmt.Printf("Error unmarshaling manifest: %v\n", err)
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		
-		// Try with a different structure where manifests are directly in the response
-		req, err = s.client.newRequest(http.MethodGet, path, nil)
-		if err != nil {
-			return nil, err
-		}
-		
-		var flatResp []*Manifest
-		_, err = s.client.do(req, &flatResp)
-		if err == nil && len(flatResp) > 0 {
-			return flatResp, nil
-		}
-		
-		// If all attempts fail, return empty array rather than error
-		return []*Manifest{}, nil
+		return manifests, nil
 	} else {
 		// Standard endpoint returns an array of manifests
 		var resp struct {
@@ -133,44 +142,49 @@ func (s *ManifestsService) Get(id string, opts *ManifestListOptions) (*Manifest,
 		return nil, err
 	}
 
-	// Try different response formats for VCS-specific endpoints
+	// For GitHub/GitLab endpoints, the response structure is different
 	if opts != nil && opts.VCS != "" {
-		// First try the nested manifest structure
-		var vcsResp struct {
-			Data struct {
-				Manifest *Manifest `json:"manifest"`
-			} `json:"data"`
-		}
-		
-		_, err = s.client.do(req, &vcsResp)
-		if err == nil && vcsResp.Data.Manifest != nil {
-			return vcsResp.Data.Manifest, nil
-		}
-		
-		// If that fails, try direct object in data field
-		req, err = s.client.newRequest(http.MethodGet, path, nil)
+		// Parse as a raw map to inspect the structure
+		var rawResp map[string]interface{}
+		_, err = s.client.do(req, &rawResp)
 		if err != nil {
 			return nil, err
 		}
-		
-		var directResp struct {
-			Data *Manifest `json:"data"`
-		}
-		_, err = s.client.do(req, &directResp)
-		if err == nil && directResp.Data != nil {
-			return directResp.Data, nil
-		}
-		
-		// Try with a direct response
-		req, err = s.client.newRequest(http.MethodGet, path, nil)
-		if err != nil {
-			return nil, err
-		}
-		
-		var flatResp *Manifest
-		_, err = s.client.do(req, &flatResp)
-		if err == nil && flatResp != nil {
-			return flatResp, nil
+
+		// Extract manifest from the data field
+		if dataField, ok := rawResp["data"]; ok {
+			if dataObj, ok := dataField.(map[string]interface{}); ok {
+				// Check for catalogManifest field first
+				if catalogManifestField, ok := dataObj["catalogManifest"]; ok {
+					if catalogMap, ok := catalogManifestField.(map[string]interface{}); ok {
+						manifestBytes, _ := json.Marshal(catalogMap)
+						var manifest Manifest
+						if err := json.Unmarshal(manifestBytes, &manifest); err == nil {
+							return &manifest, nil
+						}
+					}
+				}
+				
+				// If no catalogManifest field, try other fields
+				for _, field := range []string{"manifest", "item"} {
+					if manifestField, ok := dataObj[field]; ok {
+						if manifestMap, ok := manifestField.(map[string]interface{}); ok {
+							manifestBytes, _ := json.Marshal(manifestMap)
+							var manifest Manifest
+							if err := json.Unmarshal(manifestBytes, &manifest); err == nil {
+								return &manifest, nil
+							}
+						}
+					}
+				}
+				
+				// If no specific field found, try using the data object itself
+				manifestBytes, _ := json.Marshal(dataObj)
+				var manifest Manifest
+				if err := json.Unmarshal(manifestBytes, &manifest); err == nil && manifest.ID != "" {
+					return &manifest, nil
+				}
+			}
 		}
 		
 		// If all attempts fail, return error
