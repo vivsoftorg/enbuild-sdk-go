@@ -3,6 +3,7 @@ package enbuild
 import (
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/vivsoftorg/enbuild-sdk-go/internal/request"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://enbuild-dev.vivplatform.io/enbuild-bk"
+	defaultBaseURL = "https://enbuild.vivplatform.io/enbuild-bk"
 	defaultTimeout = 30 * time.Second
 	apiVersionPath = "/api/v1/"
 )
@@ -28,7 +29,14 @@ type ClientOption func(*Client) error
 
 // NewClient creates a new ENBUILD API client
 func NewClient(options ...ClientOption) (*Client, error) {
-	baseURL, _ := url.Parse(defaultBaseURL)
+	// Process the default base URL to ensure it has the API version path
+	defaultURLWithAPI := defaultBaseURL
+	if !strings.HasSuffix(defaultURLWithAPI, strings.TrimPrefix(apiVersionPath, "/")) && 
+	   !strings.Contains(defaultURLWithAPI, apiVersionPath) {
+		defaultURLWithAPI += apiVersionPath
+	}
+	
+	baseURL, _ := url.Parse(defaultURLWithAPI)
 	httpClient := &request.Client{
 		BaseURL:    baseURL,
 		UserAgent:  "enbuild-sdk-go",

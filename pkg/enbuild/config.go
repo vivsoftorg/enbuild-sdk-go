@@ -15,13 +15,11 @@ func WithBaseURL(baseURL string) ClientOption {
 			return nil
 		}
 
-		// Ensure the base URL ends with a slash
-		if !strings.HasSuffix(baseURL, "/") {
-			baseURL += "/"
-		}
+		// Remove trailing slash if present
+		baseURL = strings.TrimSuffix(baseURL, "/")
 
 		// Ensure the base URL includes the API version path
-		if !strings.HasSuffix(baseURL, apiVersionPath) && !strings.Contains(baseURL, apiVersionPath) {
+		if !strings.HasSuffix(baseURL, strings.TrimPrefix(apiVersionPath, "/")) && !strings.Contains(baseURL, apiVersionPath) {
 			baseURL += apiVersionPath
 		}
 
