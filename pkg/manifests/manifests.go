@@ -22,7 +22,7 @@ func NewService(client *request.Client) *Service {
 
 // ManifestListOptions specifies the optional parameters to the ManifestsService.List method
 type ManifestListOptions struct {
-	VCS types.VCSType `url:"vcs,omitempty"`
+	VCS string `url:"vcs,omitempty"`
 }
 
 // List returns a list of manifests

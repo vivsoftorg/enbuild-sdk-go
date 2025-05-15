@@ -1,15 +1,5 @@
 package types
 
-// VCSType represents the type of version control system
-type VCSType string
-
-const (
-	// VCSTypeGitHub represents GitHub VCS
-	VCSTypeGitHub VCSType = "GITHUB"
-	// VCSTypeGitLab represents GitLab VCS
-	VCSTypeGitLab VCSType = "GITLAB"
-)
-
 // Manifest represents an ENBUILD manifest
 type Manifest struct {
 	ID          interface{}            `json:"id,omitempty"`
@@ -20,7 +10,7 @@ type Manifest struct {
 	Version     string                 `json:"version,omitempty"`
 	CreatedOn   interface{}            `json:"createdOn,omitempty"`
 	UpdatedOn   interface{}            `json:"updatedOn,omitempty"`
-	VCS         VCSType                `json:"vcs,omitempty"`
+	VCS         string                 `json:"vcs,omitempty"`
 	Slug        string                 `json:"slug,omitempty"`
 	Type        string                 `json:"type,omitempty"`
 }

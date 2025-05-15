@@ -7,7 +7,6 @@ import (
 
 	"github.com/vivsoftorg/enbuild-sdk-go/pkg/enbuild"
 	"github.com/vivsoftorg/enbuild-sdk-go/pkg/manifests"
-	"github.com/vivsoftorg/enbuild-sdk-go/pkg/types"
 )
 
 func main() {
@@ -34,18 +33,26 @@ func main() {
 		log.Fatalf("Error creating client: %v", err)
 	}
 
+	// Fetch and print GitHub manifests
 	fmt.Println("Fetching GitHub manifests...")
-	// List GitHub manifests
-	githubManifests, err := client.Manifests.List(&manifests.ManifestListOptions{
-		VCS: types.VCSTypeGitHub,
+	fetchAndPrintManifests(client, "GITHUB")
+
+	// Fetch and print GitLab manifests
+	fmt.Println("\nFetching GitLab manifests...")
+	fetchAndPrintManifests(client, "GITLAB")
+}
+
+func fetchAndPrintManifests(client *enbuild.Client, vcsType string) {
+	manifests, err := client.Manifests.List(&manifests.ManifestListOptions{
+		VCS: vcsType,
 	})
 	if err != nil {
-		log.Printf("Error listing GitHub manifests: %v", err)
+		log.Printf("Error listing %s manifests: %v", vcsType, err)
 		return // Return early on error
 	}
 
-	fmt.Printf("Found %d GitHub manifests\n", len(githubManifests))
-	for _, manifest := range githubManifests {
+	fmt.Printf("Found %d %s manifests\n", len(manifests), vcsType)
+	for _, manifest := range manifests {
 		fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v\n",
 			manifest.ID, manifest.Name, manifest.Type, manifest.Slug)
 	}
