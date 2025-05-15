@@ -9,11 +9,11 @@ import (
 )
 
 func printCatalogs(catalogs []*enbuild.Catalog) {
-	fmt.Printf("Found %d catalogs\n", len(catalogs))
-	for _, m := range catalogs {
-		fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v, VCS: %v\n",
-			m.ID, m.Name, m.Type, m.Slug, m.VCS)
-	}
+    fmt.Printf("Found %d catalogs\n", len(catalogs))
+    for _, catalog := range catalogs {
+        fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v, VCS: %v\n",
+            catalog.ID, catalog.Name, catalog.Type, catalog.Slug, catalog.VCS)
+    }
 }
 
 func main() {
@@ -40,7 +40,6 @@ func main() {
 	// -----------------------------------------------------------------------------------------------------------------
 	// Example 1: List all Catalogs
 	fmt.Println("Listing all Catalogs:")
-	// allCatalogs, err := client.Catalogs.List(&enbuild.CatalogListOptions{})
 	allCatalogs, err := client.Catalogs.List()
 	if err != nil {
 		log.Fatalf("Error listing Catalogs: %v", err)
