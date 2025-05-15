@@ -6,7 +6,9 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/vivsoftorg/enbuild-sdk-go"
+	"github.com/vivsoftorg/enbuild-sdk-go/pkg/enbuild"
+	"github.com/vivsoftorg/enbuild-sdk-go/pkg/manifests"
+	"github.com/vivsoftorg/enbuild-sdk-go/pkg/types"
 )
 
 func main() {
@@ -36,8 +38,8 @@ func main() {
 
 	fmt.Println("Fetching GitHub manifests...")
 	// List GitHub manifests
-	githubManifests, err := client.Manifests.List(&enbuild.ManifestListOptions{
-		VCS: enbuild.VCSTypeGitHub,
+	githubManifests, err := client.Manifests.List(&manifests.ManifestListOptions{
+		VCS: types.VCSTypeGitHub,
 	})
 	if err != nil {
 		log.Printf("Error listing GitHub manifests: %v", err)
