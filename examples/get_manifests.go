@@ -6,13 +6,11 @@ import (
 	"os"
 
 	"github.com/vivsoftorg/enbuild-sdk-go/pkg/enbuild"
-	"github.com/vivsoftorg/enbuild-sdk-go/pkg/manifests"
-	"github.com/vivsoftorg/enbuild-sdk-go/pkg/types"
 )
 
-func printManifests(manifests []*types.Manifest) {
-	fmt.Printf("Found %d manifests\n", len(manifests))
-	for _, m := range manifests {
+func printCatalogs(catalogs []*enbuild.Catalog) {
+	fmt.Printf("Found %d catalogs\n", len(catalogs))
+	for _, m := range catalogs {
 		fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v, VCS: %v\n",
 			m.ID, m.Name, m.Type, m.Slug, m.VCS)
 	}
@@ -40,12 +38,12 @@ func main() {
 		log.Fatalf("Error creating client: %v", err)
 	}
 
-	// Example: Get manifest by ID
+	// Example: Get catalog by ID
 	id := "6638a128d6852d0012a27491"
-	fmt.Printf("\nGetting manifest with ID %s:\n", id)
-	manifest, err := client.Manifests.Get(id, &manifests.ManifestListOptions{})
+	fmt.Printf("\nGetting catalog with ID %s:\n", id)
+	catalog, err := client.Catalogs.Get(id, &enbuild.CatalogListOptions{})
 	if err != nil {
-		log.Fatalf("Error getting manifest: %v", err)
+		log.Fatalf("Error getting catalog: %v", err)
 	}
-	printManifests([]*types.Manifest{manifest})
+	printCatalogs([]*enbuild.Catalog{catalog})
 }

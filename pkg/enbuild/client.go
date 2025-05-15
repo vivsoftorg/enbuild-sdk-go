@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/vivsoftorg/enbuild-sdk-go/internal/request"
-	"github.com/vivsoftorg/enbuild-sdk-go/pkg/manifests"
 )
 
 const (
@@ -22,7 +21,7 @@ type Client struct {
 	httpClient *request.Client
 
 	// Services
-	Manifests *manifests.Service
+	Catalogs *Service
 }
 
 // ClientOption is a function that configures a Client
@@ -58,7 +57,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 	}
 
 	// Initialize services
-	c.Manifests = manifests.NewService(c.httpClient)
+	c.Catalogs = NewService(c.httpClient)
 
 	return c, nil
 }
