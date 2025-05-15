@@ -33,6 +33,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		BaseURL:    baseURL,
 		UserAgent:  "enbuild-sdk-go",
 		HTTPClient: &http.Client{Timeout: defaultTimeout},
+		Debug:      false,
 	}
 
 	c := &Client{
