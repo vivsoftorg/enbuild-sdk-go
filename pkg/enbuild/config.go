@@ -18,7 +18,7 @@ func WithBaseURL(baseURL string) ClientOption {
 				baseURL += "api/v1/"
 			}
 		}
-		
+
 		parsedURL, err := url.Parse(baseURL)
 		if err != nil {
 			return err
