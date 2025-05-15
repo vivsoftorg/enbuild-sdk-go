@@ -1,0 +1,3 @@
+fmt:
+	@echo "Formatting Go code..."
+	go fmt ./...

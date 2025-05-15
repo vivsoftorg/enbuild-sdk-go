@@ -28,7 +28,7 @@ func main() {
 	// Create client options
 	options := []enbuild.ClientOption{
 		enbuild.WithAuthToken(token),
-		enbuild.WithDebug(false), // Disable debug mode
+		enbuild.WithDebug(true), // Enable debug mode
 	}
 
 	// Get base URL from environment variable if provided
@@ -71,13 +71,13 @@ func main() {
 	// printManifests(gitlabManifests)
 
 	// Example 4: Get manifest by ID
-	// id := "6638a128d6852d0012a27491"
-	// fmt.Printf("\nGetting manifest with ID %s:\n", id)
-	// manifest, err := client.Manifests.Get(id, nil)
-	// if err != nil {
-	// 	log.Fatalf("Error getting manifest: %v", err)
-	// }
-	// printManifests([]*types.Manifest{manifest})
+	id := "6638a128d6852d0012a27491"
+	fmt.Printf("\nGetting manifest with ID %s:\n", id)
+	manifest, err := client.Manifests.Get(id, &manifests.ManifestListOptions{})
+	if err != nil {
+		log.Fatalf("Error getting manifest: %v", err)
+	}
+	printManifests([]*types.Manifest{manifest})
 
 	// // Example 5: Filter manifests by type
 	// fmt.Println("\nFiltering manifests by type 'terraform':")
@@ -89,14 +89,14 @@ func main() {
 	// }
 	// printManifests(terraformManifests)
 
-	// Example 6: Search manifests by name
-	searchTerm := "Bang"
-	fmt.Printf("\nSearching manifests with name containing '%s':\n", searchTerm)
-	searchResults, err := client.Manifests.List(&manifests.ManifestListOptions{
-		Name: searchTerm,
-	})
-	if err != nil {
-		log.Fatalf("Error searching manifests: %v", err)
-	}
-	printManifests(searchResults)
+	// // Example 6: Search manifests by name
+	// searchTerm := "Bang"
+	// fmt.Printf("\nSearching manifests with name containing '%s':\n", searchTerm)
+	// searchResults, err := client.Manifests.List(&manifests.ManifestListOptions{
+	// 	Name: searchTerm,
+	// })
+	// if err != nil {
+	// 	log.Fatalf("Error searching manifests: %v", err)
+	// }
+	// printManifests(searchResults)
 }

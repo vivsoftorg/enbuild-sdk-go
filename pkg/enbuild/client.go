@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://api.enbuild.com/api/v1/"
+	defaultBaseURL = "https://enbuild-dev.vivplatform.io/enbuild-bk"
 	defaultTimeout = 30 * time.Second
 	apiVersionPath = "/api/v1/"
 )
