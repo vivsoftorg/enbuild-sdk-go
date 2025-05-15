@@ -33,86 +33,121 @@ type ManifestListOptions struct {
 
 // List returns a list of manifests
 func (s *Service) List(opts *ManifestListOptions) ([]*types.Manifest, error) {
-	// Always use the standard manifests endpoint
+	// Determine the path based on VCS option
 	path := "manifests"
+	if opts != nil && opts.VCS != "" {
+		vcsType := strings.ToLower(opts.VCS)
+		if vcsType == "github" {
+			path = "githubManifest"
+		} else if vcsType == "gitlab" {
+			path = "gitlabManifest"
+		}
+	}
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get all manifests first
-	manifests, err := s.getAllManifests(req)
+	// Get manifests
+	var manifests []*types.Manifest
+
+	// Handle different response formats based on the endpoint
+	if path == "manifests" {
+		// Standard endpoint
+		manifests, err = s.getManifests(req)
+	} else {
+		// VCS-specific endpoints (GitHub/GitLab)
+		manifests, err = s.getVCSManifests(req)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	// If no options provided, return all manifests
-	if opts == nil {
+	// If no options provided or only VCS filter was used, return all manifests
+	if opts == nil || (opts.ID == "" && opts.Type == "" && opts.Slug == "" &&
+		opts.Name == "" && opts.Description == "" && opts.Version == "") {
 		return manifests, nil
 	}
 
-	// Filter manifests based on options
+	// Filter manifests based on other options
 	return s.filterManifests(manifests, opts), nil
 }
 
-// Get returns a single manifest by ID
-func (s *Service) Get(id string, opts *ManifestListOptions) (*types.Manifest, error) {
-	if id == "" {
-		return nil, fmt.Errorf("manifest ID is required")
-	}
+// // Get returns a single manifest by ID
+// func (s *Service) Get(id string, opts *ManifestListOptions) (*types.Manifest, error) {
+// 	if id == "" {
+// 		return nil, fmt.Errorf("manifest ID is required")
+// 	}
 
-	// Create options with ID if not provided
-	if opts == nil {
-		opts = &ManifestListOptions{ID: id}
-	} else {
-		opts.ID = id
-	}
+// 	// Append ID to path
+// 	path = fmt.Sprintf("%s/%s", "manifests", id)
 
-	// Use List with ID filter to get a single manifest
-	manifests, err := s.List(opts)
-	if err != nil {
-		return nil, err
-	}
+// 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if len(manifests) == 0 {
-		return nil, fmt.Errorf("manifest with ID %s not found", id)
-	}
+// 	// Handle different response formats based on the endpoint
+// 	if path == fmt.Sprintf("manifests/%s", id) {
+// 		// Standard endpoint
+// 		var resp struct {
+// 			Data *types.Manifest `json:"data"`
+// 		}
+// 		if _, err := s.client.Do(req, &resp); err != nil {
+// 			return nil, err
+// 		}
 
-	return manifests[0], nil
-}
+// 		// Convert ID to string if needed
+// 		if id, ok := resp.Data.ID.(float64); ok {
+// 			resp.Data.ID = fmt.Sprintf("%v", int64(id))
+// 		}
 
-func (s *Service) getAllManifests(req *http.Request) ([]*types.Manifest, error) {
-	// Try standard endpoint first
-	standardManifests, err := s.getStandardManifests(req)
-	if err != nil {
-		if s.client.Debug {
-			fmt.Printf("Error getting standard manifests: %v\n", err)
-		}
-		// If standard endpoint fails, return empty list
-		standardManifests = []*types.Manifest{}
-	}
+// 		return resp.Data, nil
+// 	} else {
+// 		// VCS-specific endpoint
+// 		var rawResp map[string]interface{}
+// 		if _, err := s.client.Do(req, &rawResp); err != nil {
+// 			return nil, err
+// 		}
 
-	// Try GitHub endpoint
-	githubReq, _ := s.client.NewRequest(http.MethodGet, "githubManifest", nil)
-	githubManifests, err := s.getCustomEndpointManifests(githubReq)
-	if err != nil && s.client.Debug {
-		fmt.Printf("Error getting GitHub manifests: %v\n", err)
-	}
+// 		if s.client.Debug {
+// 			fmt.Printf("Raw response from API: %+v\n", rawResp)
+// 		}
 
-	// Try GitLab endpoint
-	gitlabReq, _ := s.client.NewRequest(http.MethodGet, "gitlabManifest", nil)
-	gitlabManifests, err := s.getCustomEndpointManifests(gitlabReq)
-	if err != nil && s.client.Debug {
-		fmt.Printf("Error getting GitLab manifests: %v\n", err)
-	}
+// 		// Extract manifest from the data field
+// 		if dataField, ok := rawResp["data"].(map[string]interface{}); ok {
+// 			// Check for catalogManifest field first
+// 			if catalogManifestField, ok := dataField["catalogManifest"].(map[string]interface{}); ok {
+// 				// Convert ID to string format if it exists
+// 				if id, ok := catalogManifestField["_id"]; ok {
+// 					catalogManifestField["_id"] = fmt.Sprintf("%v", id) // Explicitly convert to string
+// 				}
 
-	// Combine all manifests
-	allManifests := append(standardManifests, githubManifests...)
-	allManifests = append(allManifests, gitlabManifests...)
+// 				manifestBytes, _ := json.Marshal(catalogManifestField)
+// 				var manifest types.Manifest
+// 				if err := json.Unmarshal(manifestBytes, &manifest); err == nil {
+// 					return &manifest, nil
+// 				}
+// 			}
 
-	return allManifests, nil
-}
+// 			// If no catalogManifest field, try using the data object itself
+// 			// Convert ID to string format if it exists
+// 			if id, ok := dataField["_id"]; ok {
+// 				dataField["_id"] = fmt.Sprintf("%v", id) // Explicitly convert to string
+// 			}
+
+// 			manifestBytes, _ := json.Marshal(dataField)
+// 			var manifest types.Manifest
+// 			if err := json.Unmarshal(manifestBytes, &manifest); err == nil && manifest.ID != nil {
+// 				return &manifest, nil
+// 			}
+// 		}
+
+// 		return nil, fmt.Errorf("could not parse manifest response")
+// 	}
+// }
 
 func (s *Service) filterManifests(manifests []*types.Manifest, opts *ManifestListOptions) []*types.Manifest {
 	if opts == nil {
@@ -129,7 +164,7 @@ func (s *Service) filterManifests(manifests []*types.Manifest, opts *ManifestLis
 			}
 		}
 
-		// Filter by VCS if provided
+		// Filter by VCS if provided (already filtered by endpoint selection, but double-check)
 		if opts.VCS != "" && !strings.EqualFold(m.VCS, opts.VCS) {
 			continue
 		}
@@ -168,7 +203,7 @@ func (s *Service) filterManifests(manifests []*types.Manifest, opts *ManifestLis
 	return filtered
 }
 
-func (s *Service) getStandardManifests(req *http.Request) ([]*types.Manifest, error) {
+func (s *Service) getManifests(req *http.Request) ([]*types.Manifest, error) {
 	var resp struct {
 		Data []*types.Manifest `json:"data"`
 	}
@@ -188,7 +223,7 @@ func (s *Service) getStandardManifests(req *http.Request) ([]*types.Manifest, er
 	return resp.Data, nil
 }
 
-func (s *Service) getCustomEndpointManifests(req *http.Request) ([]*types.Manifest, error) {
+func (s *Service) getVCSManifests(req *http.Request) ([]*types.Manifest, error) {
 	var rawResp map[string]interface{}
 	if _, err := s.client.Do(req, &rawResp); err != nil {
 		return nil, err
