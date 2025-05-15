@@ -22,7 +22,7 @@ func NewService(client *request.Client) *Service {
 
 // List returns a list of catalogs.
 func (s *Service) List(opts *CatalogListOptions) ([]*Catalog, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "catalogs", opts)
+	req, err := s.client.NewRequest(http.MethodGet, "manifests", opts)
 	if err != nil {
 		return nil, err
 	}
