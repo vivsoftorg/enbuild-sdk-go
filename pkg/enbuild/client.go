@@ -14,6 +14,7 @@ const (
 	defaultBaseURL = "https://enbuild.vivplatform.io/enbuild-bk"
 	defaultTimeout = 30 * time.Second
 	apiVersionPath = "/api/v1/"
+	defaultToken   = "default-token" // Default token to use if none provided
 )
 
 // Client represents the ENBUILD API client
@@ -41,6 +42,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		BaseURL:    baseURL,
 		UserAgent:  "enbuild-sdk-go",
 		HTTPClient: &http.Client{Timeout: defaultTimeout},
+		AuthToken:  defaultToken, // Set default token
 		Debug:      false,
 	}
 

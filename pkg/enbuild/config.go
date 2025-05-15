@@ -29,6 +29,12 @@ func WithBaseURL(baseURL string) ClientOption {
 		}
 
 		c.httpClient.BaseURL = parsedURL
+		
+		// Log base URL in debug mode
+		if c.httpClient.Debug {
+			fmt.Printf("Using base URL: %s\n", parsedURL.String())
+		}
+		
 		return nil
 	}
 }
@@ -48,10 +54,26 @@ func WithAuthToken(token string) ClientOption {
 			// Try to get token from environment variable
 			token = os.Getenv("ENBUILD_API_TOKEN")
 			if token == "" {
-				return fmt.Errorf("authentication token is required")
+				// Use default token if environment variable is not set
+				token = defaultToken
+				if c.httpClient.Debug {
+					fmt.Printf("Using default token: %s\n", token)
+				}
+			} else if c.httpClient.Debug {
+				fmt.Printf("Using token from environment variable\n")
 			}
+		} else if c.httpClient.Debug {
+			fmt.Printf("Using provided token\n")
 		}
+		
 		c.httpClient.AuthToken = token
+		
+		// Log token in debug mode (masked for security)
+		if c.httpClient.Debug {
+			maskedToken := maskToken(token)
+			fmt.Printf("Auth token: %s\n", maskedToken)
+		}
+		
 		return nil
 	}
 }
@@ -62,4 +84,12 @@ func WithDebug(debug bool) ClientOption {
 		c.httpClient.Debug = debug
 		return nil
 	}
+}
+
+// maskToken masks a token for secure logging
+func maskToken(token string) string {
+	if len(token) <= 4 {
+		return "****"
+	}
+	return token[:2] + "****" + token[len(token)-2:]
 }

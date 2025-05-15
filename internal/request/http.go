@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Client represents an HTTP client for making API requests
@@ -57,6 +58,17 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	if c.Debug {
 		fmt.Printf("Making request to: %s %s\n", req.Method, req.URL.String())
+		
+		// Print request headers in debug mode
+		fmt.Println("Request headers:")
+		for key, values := range req.Header {
+			// Mask the Authorization header for security
+			if strings.ToLower(key) == "authorization" {
+				fmt.Printf("  %s: Bearer ****\n", key)
+			} else {
+				fmt.Printf("  %s: %s\n", key, strings.Join(values, ", "))
+			}
+		}
 	}
 
 	resp, err := c.HTTPClient.Do(req)

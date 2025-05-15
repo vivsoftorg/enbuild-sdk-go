@@ -19,16 +19,14 @@ func printManifests(manifests []*types.Manifest) {
 }
 
 func main() {
-	// Get API token from environment variable
-	token := os.Getenv("ENBUILD_API_TOKEN")
-	if token == "" {
-		log.Fatal("ENBUILD_API_TOKEN environment variable is required")
-	}
-
 	// Create client options
 	options := []enbuild.ClientOption{
-		enbuild.WithAuthToken(token),
-		enbuild.WithDebug(true), // Enable debug mode
+		enbuild.WithDebug(false), // Enable debug mode
+	}
+
+	// Get API token from environment variable if provided
+	if token := os.Getenv("ENBUILD_API_TOKEN"); token != "" {
+		options = append(options, enbuild.WithAuthToken(token))
 	}
 
 	// Get base URL from environment variable if provided
@@ -42,35 +40,7 @@ func main() {
 		log.Fatalf("Error creating client: %v", err)
 	}
 
-	// // Example 1: List all manifests
-	// fmt.Println("Listing all manifests:")
-	// allManifests, err := client.Manifests.List(nil)
-	// if err != nil {
-	// 	log.Fatalf("Error listing manifests: %v", err)
-	// }
-	// printManifests(allManifests)
-
-	// // Example 2: List GitHub manifests
-	// fmt.Println("\nListing GitHub manifests:")
-	// githubManifests, err := client.Manifests.List(&manifests.ManifestListOptions{
-	// 	VCS: "github",
-	// })
-	// if err != nil {
-	// 	log.Fatalf("Error listing GitHub manifests: %v", err)
-	// }
-	// printManifests(githubManifests)
-
-	// // Example 3: List GitLab manifests
-	// fmt.Println("\nListing GitLab manifests:")
-	// gitlabManifests, err := client.Manifests.List(&manifests.ManifestListOptions{
-	// 	VCS: "gitlab",
-	// })
-	// if err != nil {
-	// 	log.Fatalf("Error listing GitLab manifests: %v", err)
-	// }
-	// printManifests(gitlabManifests)
-
-	// Example 4: Get manifest by ID
+	// Example: Get manifest by ID
 	id := "6638a128d6852d0012a27491"
 	fmt.Printf("\nGetting manifest with ID %s:\n", id)
 	manifest, err := client.Manifests.Get(id, &manifests.ManifestListOptions{})
@@ -78,25 +48,4 @@ func main() {
 		log.Fatalf("Error getting manifest: %v", err)
 	}
 	printManifests([]*types.Manifest{manifest})
-
-	// // Example 5: Filter manifests by type
-	// fmt.Println("\nFiltering manifests by type 'terraform':")
-	// terraformManifests, err := client.Manifests.List(&manifests.ManifestListOptions{
-	// 	Type: "terraform",
-	// })
-	// if err != nil {
-	// 	log.Fatalf("Error filtering manifests: %v", err)
-	// }
-	// printManifests(terraformManifests)
-
-	// // Example 6: Search manifests by name
-	// searchTerm := "Bang"
-	// fmt.Printf("\nSearching manifests with name containing '%s':\n", searchTerm)
-	// searchResults, err := client.Manifests.List(&manifests.ManifestListOptions{
-	// 	Name: searchTerm,
-	// })
-	// if err != nil {
-	// 	log.Fatalf("Error searching manifests: %v", err)
-	// }
-	// printManifests(searchResults)
 }
