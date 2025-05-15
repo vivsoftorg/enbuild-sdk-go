@@ -39,12 +39,13 @@ func main() {
 	}
 	// -----------------------------------------------------------------------------------------------------------------
 	// Example 1: List all Catalogs
-	// fmt.Println("Listing all Catalogs:")
-	// allCatalogs, err := client.Catalogs.List(nil)
-	// if err != nil {
-	// 	log.Fatalf("Error listing Catalogs: %v", err)
-	// }
-	// printCatalogs(allCatalogs)
+	fmt.Println("Listing all Catalogs:")
+	// allCatalogs, err := client.Catalogs.List(&enbuild.CatalogListOptions{})
+	allCatalogs, err := client.Catalogs.List()
+	if err != nil {
+		log.Fatalf("Error listing Catalogs: %v", err)
+	}
+	printCatalogs(allCatalogs)
 	// -----------------------------------------------------------------------------------------------------------------
 	// Example 2: List GitHub Catalogs
 	fmt.Println("\nListing GitHub Catalogs:")

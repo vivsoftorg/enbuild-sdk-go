@@ -18,11 +18,16 @@ func NewService(client *request.Client) *Service {
 	return &Service{client: client}
 }
 
-
-
 // List returns a list of catalogs.
-func (s *Service) List(opts *CatalogListOptions) ([]*Catalog, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "manifests", opts)
+func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
+	var options *CatalogListOptions
+	if len(opts) > 0 && opts[0] != nil {
+		options = opts[0]
+	} else {
+		options = &CatalogListOptions{}
+	}
+	
+	req, err := s.client.NewRequest(http.MethodGet, "manifests", options)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +47,7 @@ func (s *Service) List(opts *CatalogListOptions) ([]*Catalog, error) {
 		}
 	}
 
-	return s.filterCatalogs(resp.Data, opts), nil
+	return s.filterCatalogs(resp.Data, options), nil
 }
 
 // Get returns a single catalog by ID.
