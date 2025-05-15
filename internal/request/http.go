@@ -44,7 +44,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", c.UserAgent)
-	
+
 	// Add auth token if available
 	if c.AuthToken != "" {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.AuthToken))
@@ -58,7 +58,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	if c.Debug {
 		fmt.Printf("Making request to: %s %s\n", req.Method, req.URL.String())
 	}
-	
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
 		fmt.Printf("Response from %s: %s\n", req.URL.String(), bodyString)
-		
+
 		// Create a new reader with the same data for the JSON decoder
 		resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	}
