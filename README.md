@@ -1,5 +1,7 @@
 # ENBUILD SDK for Go
 
+# THIS IS A WORK IN PROGRESS FOR NOW JUST A POC
+
 A Go client library for accessing the ENBUILD API.
 
 ## Installation

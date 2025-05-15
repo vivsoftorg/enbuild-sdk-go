@@ -2,8 +2,7 @@ package types
 
 // Manifest represents an ENBUILD manifest
 type Manifest struct {
-	ID          interface{}            `json:"id,omitempty"`
-	MongoID     interface{}            `json:"_id,omitempty"`
+	ID          interface{}            `json:"_id,omitempty"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
 	Content     map[string]interface{} `json:"content,omitempty"`

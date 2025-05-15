@@ -99,7 +99,10 @@ func (s *Service) parseManifests(catalogArray []interface{}) []*types.Manifest {
 			continue
 		}
 
-		s.setID(manifestMap)
+		// Convert ID to string format if it exists
+		if id, ok := manifestMap["_id"]; ok {
+			manifestMap["_id"] = fmt.Sprintf("%v", id) // Explicitly convert to string
+		}
 
 		manifestBytes, _ := json.Marshal(manifestMap)
 		var manifest types.Manifest
@@ -110,10 +113,6 @@ func (s *Service) parseManifests(catalogArray []interface{}) []*types.Manifest {
 			continue
 		}
 
-		if manifest.ID == "" && manifest.MongoID != "" {
-			manifest.ID = manifest.MongoID
-		}
-
 		if s.client.Debug {
 			fmt.Printf("Parsed manifest: %+v\n", manifest)
 		}
@@ -122,12 +121,4 @@ func (s *Service) parseManifests(catalogArray []interface{}) []*types.Manifest {
 	}
 
 	return manifests
-}
-
-func (s *Service) setID(manifestMap map[string]interface{}) {
-	if id, ok := manifestMap["id"]; ok {
-		manifestMap["ID"] = fmt.Sprintf("%v", id) // Explicitly convert to string
-	} else if id, ok := manifestMap["_id"]; ok {
-		manifestMap["ID"] = fmt.Sprintf("%v", id) // Explicitly convert to string
-	}
 }

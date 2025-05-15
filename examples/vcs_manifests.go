@@ -53,7 +53,7 @@ func fetchAndPrintManifests(client *enbuild.Client, vcsType string) {
 
 	fmt.Printf("Found %d %s manifests\n", len(manifests), vcsType)
 	for _, manifest := range manifests {
-		fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v\n",
-			manifest.ID, manifest.Name, manifest.Type, manifest.Slug)
+		fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v, VCS: %v\n",
+			manifest.ID, manifest.Name, manifest.Type, manifest.Slug, manifest.VCS)
 	}
 }
