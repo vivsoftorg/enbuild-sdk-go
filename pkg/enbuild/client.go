@@ -64,16 +64,16 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		
 		// If environment variables are not set, use default credentials
 		if username == "" {
-			username = "default-user"
+			username = "testuser"
 		}
 		if password == "" {
-			password = "default-password"
+			password = "testpassword"
 		}
 		
 		// Create auth manager with default credentials
-		authManager := NewAuthManager(username, password, c.httpClient.Debug)
+		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
 		if err := authManager.Initialize(); err != nil {
-			return nil, fmt.Errorf("failed to initialize default Keycloak authentication: %v", err)
+			return nil, fmt.Errorf("failed to initialize Keycloak authentication: %v", err)
 		}
 		
 		// Store the auth manager in the client
@@ -90,14 +90,77 @@ func NewClient(options ...ClientOption) (*Client, error) {
 			}
 			return token
 		}
-		
-		if c.httpClient.Debug {
-			fmt.Printf("Using default Keycloak authentication with username: %s\n", username)
-		}
 	}
 
 	// Initialize services
 	c.Catalogs = NewService(c.httpClient)
 
 	return c, nil
+}
+
+// WithBaseURL sets a custom base URL for the API
+func WithBaseURL(baseURL string) ClientOption {
+	return func(c *Client) error {
+		// Ensure the URL ends with the API version path
+		if !strings.HasSuffix(baseURL, strings.TrimPrefix(apiVersionPath, "/")) && 
+		   !strings.Contains(baseURL, apiVersionPath) {
+			baseURL += apiVersionPath
+		}
+		
+		// Parse the URL
+		parsedURL, err := url.Parse(baseURL)
+		if err != nil {
+			return fmt.Errorf("invalid base URL: %v", err)
+		}
+		
+		// Update the client's base URL
+		c.httpClient.BaseURL = parsedURL
+		
+		if c.httpClient.Debug {
+			fmt.Printf("Using base URL: %s\n", baseURL)
+		}
+		
+		return nil
+	}
+}
+
+// WithTimeout sets a custom timeout for API requests
+func WithTimeout(timeout time.Duration) ClientOption {
+	return func(c *Client) error {
+		c.httpClient.HTTPClient.Timeout = timeout
+		return nil
+	}
+}
+
+// WithKeycloakAuth sets the Keycloak authentication credentials
+func WithKeycloakAuth(username, password string) ClientOption {
+	return func(c *Client) error {
+		// Create auth manager with provided credentials
+		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
+		
+		// Store the auth manager in the client
+		c.authManager = authManager
+		
+		// Set the token provider to use the auth manager
+		c.httpClient.TokenProvider = func() string {
+			token, err := authManager.GetToken()
+			if err != nil {
+				if c.httpClient.Debug {
+					fmt.Printf("Error getting token: %v\n", err)
+				}
+				return ""
+			}
+			return token
+		}
+		
+		return nil
+	}
+}
+
+// WithDebug enables or disables debug output
+func WithDebug(debug bool) ClientOption {
+	return func(c *Client) error {
+		c.httpClient.Debug = debug
+		return nil
+	}
 }
