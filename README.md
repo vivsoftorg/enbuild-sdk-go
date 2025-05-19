@@ -23,7 +23,7 @@ Create a new ENBUILD client, then use the services on the client to access diffe
 ```go
 // Create a new client
 client, err := enbuild.NewClient(
-    enbuild.WithAuthToken("your-api-token"),
+    enbuild.WithKeycloakAuth("your-username", "your-password"),
     enbuild.WithDebug(true), // Enable debug output
 )
 if err != nil {
@@ -40,29 +40,42 @@ fmt.Printf("Found %d catalogs\n", len(catalogs))
 
 ## Authentication
 
-The ENBUILD API uses bearer token authentication. You can set the authentication token when creating the client:
+The ENBUILD SDK uses Keycloak authentication by default. You can provide your credentials when creating the client:
 
 ```go
 client, err := enbuild.NewClient(
-    enbuild.WithAuthToken("your-api-token"),
+    enbuild.WithKeycloakAuth("your-username", "your-password"),
 )
 ```
 
-If no token is provided, the SDK will:
-1. Look for the `ENBUILD_API_TOKEN` environment variable
-2. Fall back to a default token if the environment variable is not set
+If no credentials are provided, the SDK will:
+1. Look for the `ENBUILD_USERNAME` and `ENBUILD_PASSWORD` environment variables
+2. Fall back to default credentials if the environment variables are not set
+
+You can set the username and password using environment variables:
+```bash
+export ENBUILD_USERNAME="your-username"
+export ENBUILD_PASSWORD="your-password"
+```
+
+The SDK will automatically:
+1. Fetch the Keycloak configuration from the ENBUILD admin settings
+2. Authenticate with Keycloak to get an access token
+3. Automatically refresh the token when it expires
 
 ## Configuration
 
 The SDK can be configured using environment variables:
 
-- `ENBUILD_API_TOKEN`: Authentication token for the API (optional, falls back to default token)
+- `ENBUILD_USERNAME`: Username for Keycloak authentication
+- `ENBUILD_PASSWORD`: Password for Keycloak authentication
 - `ENBUILD_BASE_URL`: Base URL for the API (optional, defaults to the production API endpoint)
   - Note: The SDK will automatically append `/api/v1/` to the base URL if it's not already included
 
 Example:
 ```bash
-export ENBUILD_API_TOKEN="your-api-token"
+export ENBUILD_USERNAME="your-username"
+export ENBUILD_PASSWORD="your-password"
 export ENBUILD_BASE_URL="https://enbuild-dev.vivplatform.io/enbuild-bk"
 ```
 
@@ -72,11 +85,7 @@ You can also configure the client programmatically:
 // Create client options
 options := []enbuild.ClientOption{
     enbuild.WithDebug(true), // Enable debug mode
-}
-
-// Get API token from environment variable if provided
-if token := os.Getenv("ENBUILD_API_TOKEN"); token != "" {
-    options = append(options, enbuild.WithAuthToken(token))
+    enbuild.WithKeycloakAuth("your-username", "your-password"),
 }
 
 // Get base URL from environment variable if provided
@@ -108,6 +117,7 @@ See the [examples](./examples) directory for more examples of using the SDK:
 
 - `get_catalogs.go`: Demonstrates how to list, filter, and retrieve catalogs
 - `get_manifests.go`: Alias for get_catalogs.go (for backward compatibility)
+- `keycloak_auth.go`: Shows how to authenticate with Keycloak using username and password
 
 ## Configuration Options
 
@@ -115,7 +125,7 @@ The client can be configured with the following options:
 
 - `WithBaseURL`: Set a custom base URL for the API
 - `WithTimeout`: Set a custom timeout for API requests
-- `WithAuthToken`: Set the authentication token
+- `WithKeycloakAuth`: Set the Keycloak authentication credentials
 - `WithDebug`: Enable or disable debug output
 
 Example:
@@ -124,7 +134,7 @@ Example:
 client, err := enbuild.NewClient(
     enbuild.WithBaseURL("https://custom-api.enbuild.com"),
     enbuild.WithTimeout(60 * time.Second),
-    enbuild.WithAuthToken("your-api-token"),
+    enbuild.WithKeycloakAuth("your-username", "your-password"),
     enbuild.WithDebug(true),
 )
 ```
@@ -193,8 +203,8 @@ catalog, err := client.Catalogs.Get(id, &enbuild.CatalogListOptions{})
 
 ## Recent Improvements
 
+- Implemented Keycloak authentication with automatic token refresh
 - Fixed URL construction to properly handle base URLs with or without trailing slashes
-- Added default token support for easier development and testing
 - Enhanced debug output with masked sensitive information
 - Improved error handling and reporting
 - Updated examples to demonstrate all key features

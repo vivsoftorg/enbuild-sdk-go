@@ -10,13 +10,17 @@ import (
 	"strings"
 )
 
+// TokenProvider is a function that returns an authentication token
+type TokenProvider func() string
+
 // Client represents an HTTP client for making API requests
 type Client struct {
-	BaseURL    *url.URL
-	UserAgent  string
-	HTTPClient *http.Client
-	AuthToken  string
-	Debug      bool
+	BaseURL       *url.URL
+	UserAgent     string
+	HTTPClient    *http.Client
+	AuthToken     string
+	Debug         bool
+	TokenProvider TokenProvider
 }
 
 // NewRequest creates a new HTTP request
@@ -46,9 +50,17 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", c.UserAgent)
 
+	// Get token from provider if available, otherwise use static token
+	var token string
+	if c.TokenProvider != nil {
+		token = c.TokenProvider()
+	} else if c.AuthToken != "" {
+		token = c.AuthToken
+	}
+
 	// Add auth token if available
-	if c.AuthToken != "" {
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.AuthToken))
+	if token != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	}
 
 	return req, nil

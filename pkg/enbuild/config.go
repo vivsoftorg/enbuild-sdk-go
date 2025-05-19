@@ -3,7 +3,6 @@ package enbuild
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
@@ -47,41 +46,37 @@ func WithTimeout(timeout time.Duration) ClientOption {
 	}
 }
 
-// WithAuthToken sets the authentication token for API requests
-func WithAuthToken(token string) ClientOption {
-	return func(c *Client) error {
-		if token == "" {
-			// Try to get token from environment variable
-			token = os.Getenv("ENBUILD_API_TOKEN")
-			if token == "" {
-				// Use default token if environment variable is not set
-				token = defaultToken
-				if c.httpClient.Debug {
-					fmt.Printf("Using default token: %s\n", token)
-				}
-			} else if c.httpClient.Debug {
-				fmt.Printf("Using token from environment variable\n")
-			}
-		} else if c.httpClient.Debug {
-			fmt.Printf("Using provided token\n")
-		}
-		
-		c.httpClient.AuthToken = token
-		
-		// Log token in debug mode (masked for security)
-		if c.httpClient.Debug {
-			maskedToken := maskToken(token)
-			fmt.Printf("Auth token: %s\n", maskedToken)
-		}
-		
-		return nil
-	}
-}
-
 // WithDebug enables or disables debug mode
 func WithDebug(debug bool) ClientOption {
 	return func(c *Client) error {
 		c.httpClient.Debug = debug
+		return nil
+	}
+}
+
+// WithKeycloakAuth creates a client option that configures authentication using Keycloak
+func WithKeycloakAuth(username, password string) ClientOption {
+	return func(c *Client) error {
+		authManager := NewAuthManager(username, password, c.httpClient.Debug)
+		if err := authManager.Initialize(); err != nil {
+			return err
+		}
+		
+		// Store the auth manager in the client
+		c.authManager = authManager
+		
+		// Set the token provider to use the auth manager
+		c.httpClient.TokenProvider = func() string {
+			token, err := authManager.GetToken()
+			if err != nil {
+				if c.httpClient.Debug {
+					fmt.Printf("Error getting token: %v\n", err)
+				}
+				return ""
+			}
+			return token
+		}
+		
 		return nil
 	}
 }
