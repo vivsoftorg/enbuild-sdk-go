@@ -85,7 +85,7 @@ func main() {
 
 	// Create client options
 	options := []enbuild.ClientOption{
-		enbuild.WithDebug(true), // Enable debug mode
+		enbuild.WithDebug(false), // Enable debug mode
 	}
 
 	// Add base URL if provided
