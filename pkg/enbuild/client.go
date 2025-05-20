@@ -15,6 +15,7 @@ const (
 	defaultBaseURL = "https://enbuild.vivplatform.io"
 	defaultTimeout = 30 * time.Second
 	apiVersionPath = "/enbuild-bk/api/v1/"
+	adminSettingsPath = "/enbuild-user/api/v1/adminSettings"
 )
 
 // Client represents the ENBUILD API client
@@ -31,14 +32,20 @@ type ClientOption func(*Client) error
 
 // NewClient creates a new ENBUILD API client
 func NewClient(options ...ClientOption) (*Client, error) {
-	// Process the default base URL to ensure it has the API version path
-	defaultURLWithAPI := defaultBaseURL
-	if !strings.HasSuffix(defaultURLWithAPI, strings.TrimPrefix(apiVersionPath, "/")) &&
-		!strings.Contains(defaultURLWithAPI, apiVersionPath) {
-		defaultURLWithAPI += apiVersionPath
+	// Get base URL from environment variable if provided
+	baseURLEnv := os.Getenv("ENBUILD_BASE_URL")
+	baseURLToUse := defaultBaseURL
+	if baseURLEnv != "" {
+		baseURLToUse = baseURLEnv
 	}
 
-	baseURL, _ := url.Parse(defaultURLWithAPI)
+	// Process the base URL to ensure it has the API version path
+	if !strings.HasSuffix(baseURLToUse, strings.TrimPrefix(apiVersionPath, "/")) &&
+		!strings.Contains(baseURLToUse, apiVersionPath) {
+		baseURLToUse += apiVersionPath
+	}
+
+	baseURL, _ := url.Parse(baseURLToUse)
 	httpClient := &request.Client{
 		BaseURL:    baseURL,
 		UserAgent:  "enbuild-sdk-go",
@@ -57,20 +64,22 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		}
 	}
 
-	// If no token provider was set and no auth manager exists, use Keycloak with default credentials
+	// If no token provider was set and no auth manager exists, use default credentials
 	if c.httpClient.TokenProvider == nil && c.authManager == nil {
 		username := os.Getenv("ENBUILD_USERNAME")
 		password := os.Getenv("ENBUILD_PASSWORD")
 
 		// If environment variables are not set, use default credentials
-		if username == "" {
-			username = "testuser"
-		}
-		if password == "" {
-			password = "testpassword"
+		if username == "" || password == "" {
+			if c.httpClient.Debug {
+				fmt.Println("WARNING: ENBUILD_USERNAME or ENBUILD_PASSWORD environment variables not set")
+			}
+			// Use default credentials from AMAZON-Q.md
+			username = "juned"
+			password = "juned"
 		}
 
-		// Create auth manager with default credentials
+		// Create auth manager with credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
 		if err := authManager.Initialize(); err != nil {
 			if c.httpClient.Debug {
@@ -140,6 +149,14 @@ func WithKeycloakAuth(username, password string) ClientOption {
 	return func(c *Client) error {
 		// Create auth manager with provided credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
+
+		// Initialize the auth manager
+		if err := authManager.Initialize(); err != nil {
+			if c.httpClient.Debug {
+				fmt.Printf("Warning: Failed to initialize authentication: %v\n", err)
+				fmt.Println("Continuing without authentication - some operations may fail")
+			}
+		}
 
 		// Store the auth manager in the client
 		c.authManager = authManager

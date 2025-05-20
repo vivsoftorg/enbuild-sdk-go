@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/vivsoftorg/enbuild-sdk-go/pkg/enbuild"
 )
 
@@ -16,22 +19,83 @@ func printCatalogs(catalogs []*enbuild.Catalog) {
 	}
 }
 
+// loadEnv loads environment variables from .env file
+func loadEnv() {
+	// Try to find .env file in current directory or parent directories
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Printf("Warning: Could not get current directory: %v", err)
+		return
+	}
+
+	// Try current directory first
+	envFile := filepath.Join(dir, ".env")
+	if _, err := os.Stat(envFile); err == nil {
+		if err := godotenv.Load(envFile); err != nil {
+			log.Printf("Warning: Error loading .env file: %v", err)
+		} else {
+			fmt.Println("Loaded environment variables from .env file")
+			return
+		}
+	}
+
+	// Try .envrc file if .env doesn't exist
+	envrcFile := filepath.Join(dir, ".envrc")
+	if _, err := os.Stat(envrcFile); err == nil {
+		// Parse .envrc file manually since it's not in standard .env format
+		content, err := os.ReadFile(envrcFile)
+		if err != nil {
+			log.Printf("Warning: Error reading .envrc file: %v", err)
+			return
+		}
+
+		lines := strings.Split(string(content), "\n")
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "export ") {
+				parts := strings.SplitN(strings.TrimPrefix(line, "export "), "=", 2)
+				if len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					value := strings.Trim(strings.TrimSpace(parts[1]), "\"'")
+					os.Setenv(key, value)
+				}
+			}
+		}
+		fmt.Println("Loaded environment variables from .envrc file")
+	}
+}
+
 func main() {
+	// Load environment variables from .env or .envrc file
+	loadEnv()
 
-	// // Get API token from environment variable if provided
-	// if token := os.Getenv("ENBUILD_API_TOKEN"); token != "" {
-	// 	options = append(options, enbuild.WithAuthToken(token))
-	// }
-
+	// Get credentials from environment variables
 	username := os.Getenv("ENBUILD_USERNAME")
 	password := os.Getenv("ENBUILD_PASSWORD")
 	baseURL := os.Getenv("ENBUILD_BASE_URL")
 
+	// Print environment variables for debugging
+	fmt.Printf("Using ENBUILD_BASE_URL: %s\n", baseURL)
+	fmt.Printf("Using ENBUILD_USERNAME: %s\n", username)
+	if password != "" {
+		fmt.Printf("ENBUILD_PASSWORD is set\n")
+	} else {
+		fmt.Printf("ENBUILD_PASSWORD is not set\n")
+	}
+
 	// Create client options
 	options := []enbuild.ClientOption{
 		enbuild.WithDebug(true), // Enable debug mode
-		enbuild.WithBaseURL(baseURL),
-		enbuild.WithKeycloakAuth(username, password),
+	}
+
+	// Add base URL if provided
+	if baseURL != "" {
+		options = append(options, enbuild.WithBaseURL(baseURL))
+	}
+
+	// Add authentication if credentials are provided
+	if username != "" && password != "" {
+		options = append(options, enbuild.WithKeycloakAuth(username, password))
 	}
 
 	// Create a new client
@@ -39,6 +103,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating client: %v", err)
 	}
+
 	// -----------------------------------------------------------------------------------------------------------------
 	// Example 1: List all Catalogs
 	fmt.Println("Listing all Catalogs:")
