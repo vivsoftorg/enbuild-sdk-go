@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://enbuild.vivplatform.io/enbuild-bk"
+	defaultBaseURL = "https://enbuild.vivplatform.io"
 	defaultTimeout = 30 * time.Second
-	apiVersionPath = "/api/v1/"
+	apiVersionPath = "/enbuild-bk/api/v1/"
 )
 
 // Client represents the ENBUILD API client

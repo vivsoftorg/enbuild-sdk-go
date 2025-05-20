@@ -30,7 +30,7 @@ func main() {
 
 		// Create client options
 	options := []enbuild.ClientOption{
-		enbuild.WithDebug(false), // Enable debug mode
+		enbuild.WithDebug(true), // Enable debug mode
 		enbuild.WithBaseURL(baseURL),
 		enbuild.WithKeycloakAuth(username, password),
 	}
