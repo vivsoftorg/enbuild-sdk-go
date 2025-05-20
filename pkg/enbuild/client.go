@@ -73,7 +73,10 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		// Create auth manager with default credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
 		if err := authManager.Initialize(); err != nil {
-			return nil, fmt.Errorf("failed to initialize Keycloak authentication: %v", err)
+			if c.httpClient.Debug {
+				fmt.Printf("Warning: Failed to initialize authentication: %v\n", err)
+				fmt.Println("Continuing without authentication - some operations may fail")
+			}
 		}
 		
 		// Store the auth manager in the client

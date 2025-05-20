@@ -38,7 +38,7 @@ func main() {
 		log.Fatalf("Error creating client: %v", err)
 	}
 	
-	fmt.Println("Authentication successful!")
+	fmt.Println("Client created successfully!")
 	fmt.Println("Listing all Catalogs:")
 	
 	// List catalogs
@@ -49,8 +49,12 @@ func main() {
 	
 	fmt.Printf("Found %d catalogs\n", len(catalogs))
 	
-	// Print catalog details
+	// Print first 5 catalog details
+	count := 0
 	for _, catalog := range catalogs {
+		if count >= 5 {
+			break
+		}
 		fmt.Printf("ID: %s, Name: %s, Type: %s, Slug: %s, VCS: %s\n", 
 			catalog.ID, 
 			catalog.Name, 
@@ -58,5 +62,6 @@ func main() {
 			catalog.Slug,
 			catalog.VCS,
 		)
+		count++
 	}
 }

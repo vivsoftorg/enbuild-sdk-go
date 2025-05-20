@@ -17,19 +17,22 @@ func printCatalogs(catalogs []*enbuild.Catalog) {
 }
 
 func main() {
-	// Create client options
+
+
+	// // Get API token from environment variable if provided
+	// if token := os.Getenv("ENBUILD_API_TOKEN"); token != "" {
+	// 	options = append(options, enbuild.WithAuthToken(token))
+	// }
+
+	username := os.Getenv("ENBUILD_USERNAME")
+	password := os.Getenv("ENBUILD_PASSWORD")
+	baseURL := os.Getenv("ENBUILD_BASE_URL")
+
+		// Create client options
 	options := []enbuild.ClientOption{
 		enbuild.WithDebug(false), // Enable debug mode
-	}
-
-	// Get API token from environment variable if provided
-	if token := os.Getenv("ENBUILD_API_TOKEN"); token != "" {
-		options = append(options, enbuild.WithAuthToken(token))
-	}
-
-	// Get base URL from environment variable if provided
-	if baseURL := os.Getenv("ENBUILD_BASE_URL"); baseURL != "" {
-		options = append(options, enbuild.WithBaseURL(baseURL))
+		enbuild.WithBaseURL(baseURL),
+		enbuild.WithKeycloakAuth(username, password),
 	}
 
 	// Create a new client
