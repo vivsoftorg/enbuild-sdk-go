@@ -4,7 +4,7 @@ A Go client library for accessing the ENBUILD API.
 
 ## Version
 
-Current version: 0.0.1 (Initial Release)
+Current version: 0.0.2
 
 ## Installation
 
