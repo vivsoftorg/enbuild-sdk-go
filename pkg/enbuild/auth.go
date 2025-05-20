@@ -165,8 +165,9 @@ func (am *AuthManager) fetchAdminSettings() error {
 
 		if am.authMechanism == "keycloak" && setting.AdminConfigs.Keycloak.KeycloakBackendURL != "" {
 			am.keycloakConfig.BackendURL = setting.AdminConfigs.Keycloak.KeycloakBackendURL
-			// am.keycloakConfig.ClientID = setting.AdminConfigs.Keycloak.KeycloakClientID
-			am.keycloakConfig.ClientID = "enbuild-ui"
+			// juned
+			am.keycloakConfig.ClientID = setting.AdminConfigs.Keycloak.KeycloakClientID
+			// am.keycloakConfig.ClientID = "enbuild-ui"
 			am.keycloakConfig.Realm = setting.AdminConfigs.Keycloak.KeycloakRealm
 			configFound = true
 			break

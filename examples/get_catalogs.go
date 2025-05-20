@@ -8,7 +8,7 @@ import (
     "github.com/vivsoftorg/enbuild-sdk-go/pkg/enbuild"
 )
 
-const debug = true
+const debug = false
 
 func printCatalogs(catalogs []*enbuild.Catalog) {
     fmt.Printf("Found %d catalogs\n", len(catalogs))
