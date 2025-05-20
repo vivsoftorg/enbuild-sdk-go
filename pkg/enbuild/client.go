@@ -82,10 +82,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		// Create auth manager with credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
 		if err := authManager.Initialize(); err != nil {
-			if c.httpClient.Debug {
-				fmt.Printf("Warning: Failed to initialize authentication: %v\n", err)
-				fmt.Println("Continuing without authentication - some operations may fail")
-			}
+			return nil, fmt.Errorf("failed to initialize authentication: %v", err)
 		}
 
 		// Store the auth manager in the client
@@ -152,13 +149,10 @@ func WithKeycloakAuth(username, password string) ClientOption {
 
 		// Initialize the auth manager
 		if err := authManager.Initialize(); err != nil {
-			if c.httpClient.Debug {
-				fmt.Printf("Warning: Failed to initialize authentication: %v\n", err)
-				fmt.Println("Continuing without authentication - some operations may fail")
-			}
+			return fmt.Errorf("failed to initialize authentication: %v", err)
 		}
 
-		// Store the auth manager in the client
+        // Store the auth manager in the client
 		c.authManager = authManager
 
 		// Set the token provider to use the auth manager
