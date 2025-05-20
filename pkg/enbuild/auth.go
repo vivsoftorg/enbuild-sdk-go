@@ -165,7 +165,8 @@ func (am *AuthManager) fetchAdminSettings() error {
 
 		if am.authMechanism == "keycloak" && setting.AdminConfigs.Keycloak.KeycloakBackendURL != "" {
 			am.keycloakConfig.BackendURL = setting.AdminConfigs.Keycloak.KeycloakBackendURL
-			am.keycloakConfig.ClientID = setting.AdminConfigs.Keycloak.KeycloakClientID
+			// am.keycloakConfig.ClientID = setting.AdminConfigs.Keycloak.KeycloakClientID
+			am.keycloakConfig.ClientID = "enbuild-ui"
 			am.keycloakConfig.Realm = setting.AdminConfigs.Keycloak.KeycloakRealm
 			configFound = true
 			break
@@ -232,7 +233,7 @@ func (am *AuthManager) fetchNewToken() error {
 	}
 
 	data := url.Values{}
-	data.Set("grant_type", "authorization_code")
+	data.Set("grant_type", "password")
 	data.Set("client_id", clientID)
 	data.Set("username", am.username)
 	data.Set("password", am.password)
@@ -327,11 +328,7 @@ func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
 
 	if am.debug {
 		fmt.Printf("DEBUG: Token obtained, expires in %d seconds\n", tokenResponse.ExpiresIn)
-		if len(tokenResponse.AccessToken) > 10 {
-			fmt.Printf("DEBUG: Token: %s***\n", tokenResponse.AccessToken[:10])
-		} else {
-			fmt.Printf("DEBUG: Token: %s***\n", tokenResponse.AccessToken)
-		}
+		fmt.Printf("DEBUG: Token: %s\n", tokenResponse.AccessToken)
 		fmt.Println("DEBUG: Authentication successful!")
 	}
 
