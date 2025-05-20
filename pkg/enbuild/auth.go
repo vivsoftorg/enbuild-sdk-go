@@ -232,7 +232,7 @@ func (am *AuthManager) fetchNewToken() error {
 	}
 
 	data := url.Values{}
-	data.Set("grant_type", "password")
+	data.Set("grant_type", "authorization_code")
 	data.Set("client_id", clientID)
 	data.Set("username", am.username)
 	data.Set("password", am.password)
@@ -276,6 +276,7 @@ func (am *AuthManager) refreshExpiredToken() error {
 	data := url.Values{}
 	data.Set("grant_type", "refresh_token")
 	data.Set("client_id", clientID)
+	// data.Set("client_secret", am.keycloakConfig.ClientSecret)
 	data.Set("refresh_token", am.refreshToken)
 
 	return am.requestToken(tokenURL, data)
@@ -284,7 +285,7 @@ func (am *AuthManager) refreshExpiredToken() error {
 // requestToken makes the actual HTTP request to get or refresh a token
 func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
 	if am.debug {
-		fmt.Printf("DEBUG: Making POST request to: %s\n", tokenURL)
+		fmt.Printf("DEBUG: Making POST request to: %s with postData: %s\n", tokenURL, data.Encode())
 	}
 
 	req, err := http.NewRequest("POST", tokenURL, strings.NewReader(data.Encode()))
