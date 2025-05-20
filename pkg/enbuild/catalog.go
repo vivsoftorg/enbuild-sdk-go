@@ -26,7 +26,7 @@ func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
 	} else {
 		options = &CatalogListOptions{}
 	}
-	
+
 	req, err := s.client.NewRequest(http.MethodGet, "manifests", options)
 	if err != nil {
 		return nil, err

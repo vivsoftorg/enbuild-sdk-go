@@ -20,7 +20,7 @@ type AdminSettingsResponse struct {
 // AdminSettingData represents the admin settings data
 type AdminSettingData struct {
 	AuthMechanism string `json:"authMechanism"`
-	AdminConfigs struct {
+	AdminConfigs  struct {
 		Keycloak struct {
 			KeycloakBackendURL string `json:"KEYCLOAK_BACKEND_URL"`
 			KeycloakClientID   string `json:"KEYCLOAK_CLIENT_ID"`
@@ -68,7 +68,7 @@ func NewAuthManager(username, password string, debug bool, baseURL string) *Auth
 	if os.Getenv("ENBUILD_DEBUG") == "true" {
 		debug = true
 	}
-	
+
 	return &AuthManager{
 		username: username,
 		password: password,
@@ -87,7 +87,7 @@ func (am *AuthManager) Initialize() error {
 	if err := am.fetchKeycloakConfig(); err != nil {
 		return fmt.Errorf("failed to fetch authentication configuration: %v", err)
 	}
-	
+
 	// For local auth mechanism, no need to fetch a token
 	if am.authMechanism == "local" {
 		if am.debug {
@@ -95,17 +95,17 @@ func (am *AuthManager) Initialize() error {
 		}
 		return nil
 	}
-	
+
 	// Only proceed with Keycloak authentication if authMechanism is set to keycloak
 	if am.authMechanism != "keycloak" {
 		return fmt.Errorf("unsupported authentication mechanism: %s", am.authMechanism)
 	}
-	
+
 	// Fetch initial token
 	if err := am.fetchNewToken(); err != nil {
 		return fmt.Errorf("failed to authenticate with Keycloak: %v", err)
 	}
-	
+
 	return nil
 }
 
@@ -113,56 +113,56 @@ func (am *AuthManager) Initialize() error {
 func (am *AuthManager) fetchKeycloakConfig() error {
 	// Construct the admin settings API URL
 	baseURL := am.baseURL
-	
+
 	// Extract the domain from the base URL
 	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse base URL: %v", err)
 	}
-	
+
 	// For development environment, use enbuild-dev.vivplatform.io
 	host := parsedURL.Host
 	if strings.Contains(host, "localhost") || strings.Contains(host, "127.0.0.1") {
 		host = "enbuild-dev.vivplatform.io"
 	}
-	
+
 	// Construct the admin settings URL using the appropriate domain
-	adminSettingsURL := fmt.Sprintf("%s://%s/enbuild-user/api/v1/adminSettings", 
+	adminSettingsURL := fmt.Sprintf("%s://%s/enbuild-user/api/v1/adminSettings",
 		parsedURL.Scheme, host)
-	
+
 	if am.debug {
 		fmt.Printf("DEBUG: Fetching auth config from: %s\n", adminSettingsURL)
 	}
-	
+
 	// Make the request to the admin settings API
 	resp, err := http.Get(adminSettingsURL)
 	if err != nil {
 		return fmt.Errorf("failed to get admin settings: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read admin settings response: %v", err)
 	}
-	
+
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("admin settings API returned status code %d: %s", 
+		return fmt.Errorf("admin settings API returned status code %d: %s",
 			resp.StatusCode, string(bodyBytes))
 	}
-	
+
 	// Parse the response
 	var adminSettings AdminSettingsResponse
 	if err := json.Unmarshal(bodyBytes, &adminSettings); err != nil {
 		return fmt.Errorf("failed to parse admin settings: %v", err)
 	}
-	
+
 	// Extract the authentication configuration
 	// The admin settings response has a map with keys like "0", "1", etc.
 	configFound := false
 	for _, setting := range adminSettings.Data {
 		am.authMechanism = setting.AuthMechanism
-		
+
 		if am.authMechanism == "keycloak" && setting.AdminConfigs.Keycloak.KeycloakBackendURL != "" {
 			am.keycloakConfig.BackendURL = setting.AdminConfigs.Keycloak.KeycloakBackendURL
 			am.keycloakConfig.ClientID = setting.AdminConfigs.Keycloak.KeycloakClientID
@@ -174,24 +174,24 @@ func (am *AuthManager) fetchKeycloakConfig() error {
 			break
 		}
 	}
-	
+
 	// If no valid config was found in the response, return an error
 	if !configFound {
 		return fmt.Errorf("no valid authentication configuration found in admin settings")
 	}
-	
+
 	if am.debug {
 		fmt.Printf("DEBUG: Auth mechanism: %s\n", am.authMechanism)
 		if am.authMechanism == "keycloak" {
-			fmt.Printf("DEBUG: Using Keycloak config: URL=%s, Realm=%s, ClientID=%s\n", 
-				am.keycloakConfig.BackendURL, 
+			fmt.Printf("DEBUG: Using Keycloak config: URL=%s, Realm=%s, ClientID=%s\n",
+				am.keycloakConfig.BackendURL,
 				am.keycloakConfig.Realm,
 				am.keycloakConfig.ClientID)
 		} else if am.authMechanism == "local" {
 			fmt.Printf("DEBUG: Using local authentication mechanism\n")
 		}
 	}
-	
+
 	return nil
 }
 
@@ -202,33 +202,33 @@ func (am *AuthManager) fetchNewToken() error {
 	if backendURL == "" {
 		backendURL = "https://keycloak.vivplatform.io/auth" // Default Keycloak URL from admin settings
 	}
-	
+
 	// Ensure URL has protocol
 	if !strings.HasPrefix(backendURL, "http://") && !strings.HasPrefix(backendURL, "https://") {
 		backendURL = "https://" + backendURL
 	}
-	
+
 	// Ensure realm is not empty
 	realm := am.keycloakConfig.Realm
 	if realm == "" {
 		realm = "enbuild-dev" // Default realm from admin settings
 	}
-	
-	tokenURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", 
-		backendURL, 
+
+	tokenURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token",
+		backendURL,
 		realm)
-	
+
 	if am.debug {
 		fmt.Printf("DEBUG: Requesting new token from: %s\n", tokenURL)
 		fmt.Printf("DEBUG: Using username: %s\n", am.username)
 	}
-	
+
 	data := url.Values{}
 	data.Set("grant_type", "password")
 	data.Set("client_id", am.keycloakConfig.ClientID)
 	data.Set("username", am.username)
 	data.Set("password", am.password)
-	
+
 	return am.requestToken(tokenURL, data)
 }
 
@@ -239,31 +239,31 @@ func (am *AuthManager) refreshExpiredToken() error {
 	if backendURL == "" {
 		backendURL = "https://keycloak.vivplatform.io/auth" // Default Keycloak URL from admin settings
 	}
-	
+
 	// Ensure URL has protocol
 	if !strings.HasPrefix(backendURL, "http://") && !strings.HasPrefix(backendURL, "https://") {
 		backendURL = "https://" + backendURL
 	}
-	
+
 	// Ensure realm is not empty
 	realm := am.keycloakConfig.Realm
 	if realm == "" {
 		realm = "enbuild-dev" // Default realm from admin settings
 	}
-	
-	tokenURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", 
-		backendURL, 
+
+	tokenURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token",
+		backendURL,
 		realm)
-	
+
 	if am.debug {
 		fmt.Printf("DEBUG: Refreshing token from: %s\n", tokenURL)
 	}
-	
+
 	data := url.Values{}
 	data.Set("grant_type", "refresh_token")
 	data.Set("client_id", am.keycloakConfig.ClientID)
 	data.Set("refresh_token", am.refreshToken)
-	
+
 	return am.requestToken(tokenURL, data)
 }
 
@@ -272,14 +272,14 @@ func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
 	if am.debug {
 		fmt.Printf("DEBUG: Making POST request to: %s\n", tokenURL)
 	}
-	
+
 	req, err := http.NewRequest("POST", tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	
+
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -288,28 +288,28 @@ func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
 		return fmt.Errorf("failed to get token from Keycloak: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
-	
+
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to get token from Keycloak: status code %d, response: %s", 
+		return fmt.Errorf("failed to get token from Keycloak: status code %d, response: %s",
 			resp.StatusCode, string(bodyBytes))
 	}
-	
+
 	var tokenResponse KeycloakTokenResponse
 	if err := json.Unmarshal(bodyBytes, &tokenResponse); err != nil {
 		return fmt.Errorf("failed to decode token response: %v", err)
 	}
-	
+
 	am.mutex.Lock()
 	am.accessToken = tokenResponse.AccessToken
 	am.refreshToken = tokenResponse.RefreshToken
 	am.expiresAt = time.Now().Add(time.Duration(tokenResponse.ExpiresIn-30) * time.Second) // Buffer of 30 seconds
 	am.mutex.Unlock()
-	
+
 	if am.debug {
 		fmt.Printf("DEBUG: Token obtained, expires in %d seconds\n", tokenResponse.ExpiresIn)
 		if len(tokenResponse.AccessToken) > 10 {
@@ -319,7 +319,7 @@ func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
 		}
 		fmt.Println("Authentication successful!")
 	}
-	
+
 	return nil
 }
 
@@ -332,7 +332,7 @@ func (am *AuthManager) GetToken() (string, error) {
 		}
 		return "enbuild_local_admin_token", nil
 	}
-	
+
 	// If auth mechanism is not keycloak or local, return an error
 	if am.authMechanism != "keycloak" {
 		return "", fmt.Errorf("unsupported authentication mechanism: %s", am.authMechanism)
@@ -342,7 +342,7 @@ func (am *AuthManager) GetToken() (string, error) {
 	isExpired := time.Now().After(am.expiresAt)
 	token := am.accessToken
 	am.mutex.RUnlock()
-	
+
 	if isExpired {
 		if am.debug {
 			fmt.Println("DEBUG: Token expired, refreshing...")
@@ -354,10 +354,10 @@ func (am *AuthManager) GetToken() (string, error) {
 		token = am.accessToken
 		am.mutex.RUnlock()
 	}
-	
+
 	if token == "" {
 		return "", fmt.Errorf("no valid authentication token available")
 	}
-	
+
 	return token, nil
 }

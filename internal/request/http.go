@@ -70,7 +70,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	if c.Debug {
 		fmt.Printf("Making request to: %s %s\n", req.Method, req.URL.String())
-		
+
 		// Print request headers in debug mode
 		fmt.Println("Request headers:")
 		for key, values := range req.Header {

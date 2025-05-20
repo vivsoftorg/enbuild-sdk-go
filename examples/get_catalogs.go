@@ -9,15 +9,14 @@ import (
 )
 
 func printCatalogs(catalogs []*enbuild.Catalog) {
-    fmt.Printf("Found %d catalogs\n", len(catalogs))
-    for _, catalog := range catalogs {
-        fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v, VCS: %v\n",
-            catalog.ID, catalog.Name, catalog.Type, catalog.Slug, catalog.VCS)
-    }
+	fmt.Printf("Found %d catalogs\n", len(catalogs))
+	for _, catalog := range catalogs {
+		fmt.Printf("ID: %v, Name: %v, Type: %v, Slug: %v, VCS: %v\n",
+			catalog.ID, catalog.Name, catalog.Type, catalog.Slug, catalog.VCS)
+	}
 }
 
 func main() {
-
 
 	// // Get API token from environment variable if provided
 	// if token := os.Getenv("ENBUILD_API_TOKEN"); token != "" {
@@ -28,7 +27,7 @@ func main() {
 	password := os.Getenv("ENBUILD_PASSWORD")
 	baseURL := os.Getenv("ENBUILD_BASE_URL")
 
-		// Create client options
+	// Create client options
 	options := []enbuild.ClientOption{
 		enbuild.WithDebug(true), // Enable debug mode
 		enbuild.WithBaseURL(baseURL),

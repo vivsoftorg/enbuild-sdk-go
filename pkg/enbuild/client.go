@@ -19,7 +19,7 @@ const (
 
 // Client represents the ENBUILD API client
 type Client struct {
-	httpClient *request.Client
+	httpClient  *request.Client
 	authManager *AuthManager
 
 	// Services
@@ -33,11 +33,11 @@ type ClientOption func(*Client) error
 func NewClient(options ...ClientOption) (*Client, error) {
 	// Process the default base URL to ensure it has the API version path
 	defaultURLWithAPI := defaultBaseURL
-	if !strings.HasSuffix(defaultURLWithAPI, strings.TrimPrefix(apiVersionPath, "/")) && 
-	   !strings.Contains(defaultURLWithAPI, apiVersionPath) {
+	if !strings.HasSuffix(defaultURLWithAPI, strings.TrimPrefix(apiVersionPath, "/")) &&
+		!strings.Contains(defaultURLWithAPI, apiVersionPath) {
 		defaultURLWithAPI += apiVersionPath
 	}
-	
+
 	baseURL, _ := url.Parse(defaultURLWithAPI)
 	httpClient := &request.Client{
 		BaseURL:    baseURL,
@@ -61,7 +61,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 	if c.httpClient.TokenProvider == nil && c.authManager == nil {
 		username := os.Getenv("ENBUILD_USERNAME")
 		password := os.Getenv("ENBUILD_PASSWORD")
-		
+
 		// If environment variables are not set, use default credentials
 		if username == "" {
 			username = "testuser"
@@ -69,7 +69,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		if password == "" {
 			password = "testpassword"
 		}
-		
+
 		// Create auth manager with default credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
 		if err := authManager.Initialize(); err != nil {
@@ -78,10 +78,10 @@ func NewClient(options ...ClientOption) (*Client, error) {
 				fmt.Println("Continuing without authentication - some operations may fail")
 			}
 		}
-		
+
 		// Store the auth manager in the client
 		c.authManager = authManager
-		
+
 		// Set the token provider to use the auth manager
 		c.httpClient.TokenProvider = func() string {
 			token, err := authManager.GetToken()
@@ -105,24 +105,24 @@ func NewClient(options ...ClientOption) (*Client, error) {
 func WithBaseURL(baseURL string) ClientOption {
 	return func(c *Client) error {
 		// Ensure the URL ends with the API version path
-		if !strings.HasSuffix(baseURL, strings.TrimPrefix(apiVersionPath, "/")) && 
-		   !strings.Contains(baseURL, apiVersionPath) {
+		if !strings.HasSuffix(baseURL, strings.TrimPrefix(apiVersionPath, "/")) &&
+			!strings.Contains(baseURL, apiVersionPath) {
 			baseURL += apiVersionPath
 		}
-		
+
 		// Parse the URL
 		parsedURL, err := url.Parse(baseURL)
 		if err != nil {
 			return fmt.Errorf("invalid base URL: %v", err)
 		}
-		
+
 		// Update the client's base URL
 		c.httpClient.BaseURL = parsedURL
-		
+
 		if c.httpClient.Debug {
 			fmt.Printf("Using base URL: %s\n", baseURL)
 		}
-		
+
 		return nil
 	}
 }
@@ -140,10 +140,10 @@ func WithKeycloakAuth(username, password string) ClientOption {
 	return func(c *Client) error {
 		// Create auth manager with provided credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
-		
+
 		// Store the auth manager in the client
 		c.authManager = authManager
-		
+
 		// Set the token provider to use the auth manager
 		c.httpClient.TokenProvider = func() string {
 			token, err := authManager.GetToken()
@@ -155,7 +155,7 @@ func WithKeycloakAuth(username, password string) ClientOption {
 			}
 			return token
 		}
-		
+
 		return nil
 	}
 }
