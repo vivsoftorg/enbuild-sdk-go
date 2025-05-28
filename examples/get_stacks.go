@@ -47,7 +47,7 @@ func createClient() (*enbuild.Client, error) {
 
 func listAllStacks(client *enbuild.Client) {
     fmt.Println("Listing all Stacks:")
-    allStacks, err := client.Stacks.ListStack()
+    allStacks, err := client.Stacks.ListStacks()
     if err != nil {
         log.Fatalf("Error listing Stacks: %v", err)
     }

@@ -7,7 +7,7 @@ import (
 )
 
 // List returns a list of Stacks.
-func (s *Enbuild) ListStack(opts ...*Stack) ([]*Stack, error) {
+func (s *Enbuild) ListStacks(opts ...*Stack) ([]*Stack, error) {
     // options := &Stack{}
     // if len(opts) > 0 && opts[0] != nil {
     //     options = opts[0]
