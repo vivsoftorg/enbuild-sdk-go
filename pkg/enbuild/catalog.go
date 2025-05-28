@@ -7,7 +7,7 @@ import (
 )
 
 // List returns a list of catalogs.
-func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
+func (s *Enbuild) ListCatalog(opts ...*CatalogListOptions) ([]*Catalog, error) {
 	var options *CatalogListOptions
 	if len(opts) > 0 && opts[0] != nil {
 		options = opts[0]
@@ -39,7 +39,7 @@ func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
 }
 
 // Get returns a single catalog by ID.
-func (s *Service) Get(id string, opts *CatalogListOptions) (*Catalog, error) {
+func (s *Enbuild) GetCatalog(id string, opts *CatalogListOptions) (*Catalog, error) {
 	if id == "" {
 		return nil, fmt.Errorf("catalog ID is required")
 	}
@@ -68,7 +68,7 @@ func (s *Service) Get(id string, opts *CatalogListOptions) (*Catalog, error) {
 	return resp.Data[0], nil
 }
 
-func (s *Service) filterCatalogs(catalogs []*Catalog, opts *CatalogListOptions) []*Catalog {
+func (s *Enbuild) filterCatalogs(catalogs []*Catalog, opts *CatalogListOptions) []*Catalog {
 	if opts == nil {
 		return catalogs
 	}

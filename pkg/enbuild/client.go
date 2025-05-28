@@ -18,8 +18,8 @@ const (
 	adminSettingsPath = "/enbuild-user/api/v1/adminSettings"
 )
 
-// Service handles communication with the enbuild-api endpoints.
-type Service struct {
+// Enbuild handles communication with the enbuild-api endpoints.
+type Enbuild struct {
 	client *request.Client
 }
 
@@ -28,17 +28,17 @@ type Client struct {
 	httpClient  *request.Client
 	authManager *AuthManager
 
-	// Services
-	Catalogs *Service
-	Stacks   *Service
+	// Enbuilds
+	Catalogs *Enbuild
+	Stacks   *Enbuild
 }
 
 // ClientOption is a function that configures a Client
 type ClientOption func(*Client) error
 
-// NewService creates a new enbuild api service.
-func NewService(client *request.Client) *Service {
-	return &Service{client: client}
+// NewEnbuild creates a new enbuild api Enbuild.
+func NewEnbuild(client *request.Client) *Enbuild {
+	return &Enbuild{client: client}
 }
 
 // NewClient creates a new ENBUILD API client
@@ -112,8 +112,8 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		}
 	}
 
-	// Initialize services
-	c.Catalogs = NewService(c.httpClient)
+	// Initialize Enbuilds
+	c.Catalogs = NewEnbuild(c.httpClient)
 
 	return c, nil
 }
