@@ -4,19 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/vivsoftorg/enbuild-sdk-go/internal/request"
 )
-
-// Service handles communication with the catalogs-related endpoints.
-type Service struct {
-	client *request.Client
-}
-
-// NewService creates a new catalogs service.
-func NewService(client *request.Client) *Service {
-	return &Service{client: client}
-}
 
 // List returns a list of catalogs.
 func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
