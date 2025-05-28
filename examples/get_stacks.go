@@ -8,12 +8,11 @@ import (
     "github.com/vivsoftorg/enbuild-sdk-go/pkg/enbuild"
 )
 
-const debug = true
+const debug = false
 
 func printStacks(Stacks []*enbuild.Stack) {
-    fmt.Printf("Found %d Stacks\n", len(Stacks))
     for _, Stack := range Stacks {
-        fmt.Printf("ID: %v\n", Stack.ID)
+        fmt.Printf("ID: %v Name: %v\n", Stack.ID, Stack.Name)
     }
 }
 
@@ -52,8 +51,9 @@ func listAllStacks(client *enbuild.Client) {
     if err != nil {
         log.Fatalf("Error listing Stacks: %v", err)
     }
-    fmt.Println("All Stacks:%v", allStacks)
-    // printStacks(allStacks)
+
+    fmt.Printf("Found: %d stacks\n", len(allStacks))
+    printStacks(allStacks)
 }
 
 func main() {

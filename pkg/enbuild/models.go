@@ -136,7 +136,7 @@ type ComponentData struct {
 type StackData struct {
     StackName        string            `json:"stackName"`
     ProjectTemplateID string           `json:"projectTemplateId"`
-    EnvVariables     []EnvVar          `json:"envVariables"`
+    // EnvVariables     []EnvVar          `json:"envVariables"`
     ComponentConfigs []ComponentCfg2   `json:"componentConfigs"`
     RegistryConfig   RegistryConfig    `json:"registryConfig"`
     RepoConfig       RepoConfig        `json:"repoConfig"`

@@ -114,6 +114,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 
 	// Initialize Enbuilds
 	c.Catalogs = NewEnbuild(c.httpClient)
+	c.Stacks = NewEnbuild(c.httpClient)
 
 	return c, nil
 }

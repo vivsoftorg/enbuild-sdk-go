@@ -13,7 +13,7 @@ func (s *Enbuild) ListStack(opts ...*Stack) ([]*Stack, error) {
     //     options = opts[0]
     // }
 
-    req, err := s.client.NewRequest(http.MethodGet, "stacks?page=0&limit=10&search=", nil)
+    req, err := s.client.NewRequest(http.MethodGet, "stacks?page=0&limit=1&search=", nil)
     if err != nil {
         return nil, err
     }
