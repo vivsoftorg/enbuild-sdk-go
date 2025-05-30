@@ -2,6 +2,7 @@ package request
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,7 +12,7 @@ import (
 )
 
 // TokenProvider is a function that returns an authentication token
-type TokenProvider func() string
+type TokenProvider func(ctx context.Context) string
 
 // Client represents an HTTP client for making API requests
 type Client struct {
@@ -24,7 +25,7 @@ type Client struct {
 }
 
 // NewRequest creates a new HTTP request
-func (c *Client) NewRequest(method, path string, body interface{}) (*http.Request, error) {
+func (c *Client) NewRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
 	u, err := c.BaseURL.Parse(path)
 	if err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 		}
 	}
 
-	req, err := http.NewRequest(method, u.String(), buf)
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), buf)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +54,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 	// Get token from provider if available, otherwise use static token
 	var token string
 	if c.TokenProvider != nil {
-		token = c.TokenProvider()
+		token = c.TokenProvider(ctx)
 	} else if c.AuthToken != "" {
 		token = c.AuthToken
 	}
@@ -67,7 +68,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 }
 
 // Do sends an HTTP request and returns an HTTP response
-func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
+func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
 	if c.Debug {
 		fmt.Printf("Making request to: %s %s\n", req.Method, req.URL.String())
 

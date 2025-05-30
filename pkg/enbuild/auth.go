@@ -1,6 +1,7 @@
 package enbuild
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -78,13 +79,13 @@ func NewAuthManager(username, password string, debug bool, baseURL string) *Auth
 }
 
 // Initialize fetches the authentication configuration and initial token
-func (am *AuthManager) Initialize() error {
+func (am *AuthManager) Initialize(ctx context.Context) error {
 	if am.debug {
 		fmt.Println("DEBUG: Authenticating with username:", am.username)
 	}
 
 	// Fetch configuration from admin settings API
-	if err := am.fetchAdminSettings(); err != nil {
+	if err := am.fetchAdminSettings(ctx); err != nil {
 		return fmt.Errorf("failed to fetch authentication configuration: %v", err)
 	}
 
@@ -102,7 +103,7 @@ func (am *AuthManager) Initialize() error {
 	}
 
 	// Fetch initial token
-	if err := am.fetchNewToken(); err != nil {
+	if err := am.fetchNewToken(ctx); err != nil {
 		return fmt.Errorf("failed to authenticate with Keycloak: %v", err)
 	}
 
@@ -110,7 +111,7 @@ func (am *AuthManager) Initialize() error {
 }
 
 // fetchAdminSettings retrieves the authentication configuration from the admin settings API
-func (am *AuthManager) fetchAdminSettings() error {
+func (am *AuthManager) fetchAdminSettings(ctx context.Context) error {
 	// Construct the admin settings API URL
 	baseURL := am.baseURL
 
@@ -136,7 +137,15 @@ func (am *AuthManager) fetchAdminSettings() error {
 	}
 
 	// Make the request to the admin settings API
-	resp, err := http.Get(adminSettingsURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, adminSettingsURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for admin settings: %w", err)
+	}
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to fetch authMechanism from ENBUILD. Please check ENBUILD_BASE_URL or network connectivity: %v", err)
 	}
@@ -198,7 +207,7 @@ func (am *AuthManager) fetchAdminSettings() error {
 }
 
 // fetchNewToken gets a new token using username/password
-func (am *AuthManager) fetchNewToken() error {
+func (am *AuthManager) fetchNewToken(ctx context.Context) error {
 	// Ensure the backend URL has a protocol scheme
 	backendURL := am.keycloakConfig.BackendURL
 	if backendURL == "" {
@@ -239,11 +248,11 @@ func (am *AuthManager) fetchNewToken() error {
 	data.Set("username", am.username)
 	data.Set("password", am.password)
 
-	return am.requestToken(tokenURL, data)
+	return am.requestToken(ctx, tokenURL, data)
 }
 
 // refreshExpiredToken refreshes the token using the refresh token
-func (am *AuthManager) refreshExpiredToken() error {
+func (am *AuthManager) refreshExpiredToken(ctx context.Context) error {
 	// Ensure the backend URL has a protocol scheme
 	backendURL := am.keycloakConfig.BackendURL
 	if backendURL == "" {
@@ -281,16 +290,16 @@ func (am *AuthManager) refreshExpiredToken() error {
 	// data.Set("client_secret", am.keycloakConfig.ClientSecret)
 	data.Set("refresh_token", am.refreshToken)
 
-	return am.requestToken(tokenURL, data)
+	return am.requestToken(ctx, tokenURL, data)
 }
 
 // requestToken makes the actual HTTP request to get or refresh a token
-func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
+func (am *AuthManager) requestToken(ctx context.Context, tokenURL string, data url.Values) error {
 	if am.debug {
 		fmt.Printf("DEBUG: Making POST request to: %s with postData: %s\n", tokenURL, data.Encode())
 	}
 
-	req, err := http.NewRequest("POST", tokenURL, strings.NewReader(data.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
 	}
@@ -298,7 +307,7 @@ func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 10 * time.Second, // TODO: Consider making timeout configurable or passed via context
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -337,7 +346,7 @@ func (am *AuthManager) requestToken(tokenURL string, data url.Values) error {
 }
 
 // GetToken returns a valid token, refreshing if necessary
-func (am *AuthManager) GetToken() (string, error) {
+func (am *AuthManager) GetToken(ctx context.Context) (string, error) {
 	// If auth mechanism is "local", return the hardcoded token
 	if am.authMechanism == "local" {
 		if am.debug {
@@ -360,7 +369,7 @@ func (am *AuthManager) GetToken() (string, error) {
 		if am.debug {
 			fmt.Println("DEBUG: Token expired, refreshing...")
 		}
-		if err := am.refreshExpiredToken(); err != nil {
+		if err := am.refreshExpiredToken(ctx); err != nil {
 			return "", fmt.Errorf("failed to refresh token: %v", err)
 		}
 		am.mutex.RLock()

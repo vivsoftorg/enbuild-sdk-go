@@ -1,33 +1,27 @@
 package enbuild
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/vivsoftorg/enbuild-sdk-go/internal/request"
 )
 
-// Service handles communication with the catalogs-related endpoints.
-type Service struct {
-	client *request.Client
-}
-
-// NewService creates a new catalogs service.
-func NewService(client *request.Client) *Service {
-	return &Service{client: client}
-}
-
 // List returns a list of catalogs.
-func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
+func (s *Enbuild) ListCatalog(ctx context.Context, opts ...*CatalogListOptions) ([]*Catalog, error) {
 	var options *CatalogListOptions
 	if len(opts) > 0 && opts[0] != nil {
 		options = opts[0]
 	} else {
+		// If options are for query params, this should be nil for a GET request body.
+		// If options ARE the body, then this is fine.
+		// For now, preserving original logic of passing it as body.
 		options = &CatalogListOptions{}
 	}
 
-	req, err := s.client.NewRequest(http.MethodGet, "manifests", options)
+	// Assuming 'options' is intended as the body. If it's for query params,
+	// path should be constructed dynamically and body should be nil.
+	req, err := s.client.NewRequest(ctx, http.MethodGet, "manifests", options)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +29,7 @@ func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
 	var resp struct {
 		Data []*Catalog `json:"data"`
 	}
-	if _, err := s.client.Do(req, &resp); err != nil {
+	if _, err := s.client.Do(ctx, req, &resp); err != nil {
 		return nil, err
 	}
 
@@ -51,13 +45,14 @@ func (s *Service) List(opts ...*CatalogListOptions) ([]*Catalog, error) {
 }
 
 // Get returns a single catalog by ID.
-func (s *Service) Get(id string, opts *CatalogListOptions) (*Catalog, error) {
+func (s *Enbuild) GetCatalog(ctx context.Context, id string, opts *CatalogListOptions) (*Catalog, error) {
 	if id == "" {
 		return nil, fmt.Errorf("catalog ID is required")
 	}
 
+	// Assuming 'opts' is intended as the body.
 	path := fmt.Sprintf("manifests/%s", id)
-	req, err := s.client.NewRequest(http.MethodGet, path, opts)
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +60,7 @@ func (s *Service) Get(id string, opts *CatalogListOptions) (*Catalog, error) {
 	var resp struct {
 		Data []*Catalog `json:"data"`
 	}
-	if _, err := s.client.Do(req, &resp); err != nil {
+	if _, err := s.client.Do(ctx, req, &resp); err != nil {
 		return nil, err
 	}
 
@@ -80,7 +75,7 @@ func (s *Service) Get(id string, opts *CatalogListOptions) (*Catalog, error) {
 	return resp.Data[0], nil
 }
 
-func (s *Service) filterCatalogs(catalogs []*Catalog, opts *CatalogListOptions) []*Catalog {
+func (s *Enbuild) filterCatalogs(catalogs []*Catalog, opts *CatalogListOptions) []*Catalog {
 	if opts == nil {
 		return catalogs
 	}

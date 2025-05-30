@@ -1,6 +1,7 @@
 package enbuild
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -12,26 +13,37 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://enbuild.vivplatform.io"
-	defaultTimeout = 30 * time.Second
-	apiVersionPath = "/enbuild-bk/api/v1/"
+	defaultBaseURL    = "https://enbuild.vivplatform.io"
+	defaultTimeout    = 30 * time.Second
+	apiVersionPath    = "/enbuild-bk/api/v1/"
 	adminSettingsPath = "/enbuild-user/api/v1/adminSettings"
 )
+
+// Enbuild handles communication with the enbuild-api endpoints.
+type Enbuild struct {
+	client *request.Client
+}
 
 // Client represents the ENBUILD API client
 type Client struct {
 	httpClient  *request.Client
 	authManager *AuthManager
 
-	// Services
-	Catalogs *Service
+	// Enbuilds
+	Catalogs *Enbuild
+	Stacks   *Enbuild
 }
 
 // ClientOption is a function that configures a Client
-type ClientOption func(*Client) error
+type ClientOption func(ctx context.Context, c *Client) error
+
+// NewEnbuild creates a new enbuild api Enbuild.
+func NewEnbuild(client *request.Client) *Enbuild {
+	return &Enbuild{client: client}
+}
 
 // NewClient creates a new ENBUILD API client
-func NewClient(options ...ClientOption) (*Client, error) {
+func NewClient(ctx context.Context, options ...ClientOption) (*Client, error) {
 	// Get base URL from environment variable if provided
 	baseURLEnv := os.Getenv("ENBUILD_BASE_URL")
 	baseURLToUse := defaultBaseURL
@@ -59,7 +71,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 
 	// Apply options
 	for _, option := range options {
-		if err := option(c); err != nil {
+		if err := option(ctx, c); err != nil {
 			return nil, err
 		}
 	}
@@ -81,7 +93,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 
 		// Create auth manager with credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
-		if err := authManager.Initialize(); err != nil {
+		if err := authManager.Initialize(ctx); err != nil {
 			return nil, fmt.Errorf("failed to initialize authentication: %v", err)
 		}
 
@@ -89,8 +101,8 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		c.authManager = authManager
 
 		// Set the token provider to use the auth manager
-		c.httpClient.TokenProvider = func() string {
-			token, err := authManager.GetToken()
+		c.httpClient.TokenProvider = func(requestCtx context.Context) string {
+			token, err := authManager.GetToken(requestCtx)
 			if err != nil {
 				if c.httpClient.Debug {
 					fmt.Printf("Error getting token: %v\n", err)
@@ -101,15 +113,16 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		}
 	}
 
-	// Initialize services
-	c.Catalogs = NewService(c.httpClient)
+	// Initialize Enbuilds
+	c.Catalogs = NewEnbuild(c.httpClient)
+	c.Stacks = NewEnbuild(c.httpClient)
 
 	return c, nil
 }
 
 // WithBaseURL sets a custom base URL for the API
 func WithBaseURL(baseURL string) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		// Ensure the URL ends with the API version path
 		if !strings.HasSuffix(baseURL, strings.TrimPrefix(apiVersionPath, "/")) &&
 			!strings.Contains(baseURL, apiVersionPath) {
@@ -135,7 +148,7 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // WithTimeout sets a custom timeout for API requests
 func WithTimeout(timeout time.Duration) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		c.httpClient.HTTPClient.Timeout = timeout
 		return nil
 	}
@@ -143,21 +156,21 @@ func WithTimeout(timeout time.Duration) ClientOption {
 
 // WithKeycloakAuth sets the Keycloak authentication credentials
 func WithKeycloakAuth(username, password string) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		// Create auth manager with provided credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
 
 		// Initialize the auth manager
-		if err := authManager.Initialize(); err != nil {
+		if err := authManager.Initialize(ctx); err != nil {
 			return fmt.Errorf("failed to initialize authentication: %v", err)
 		}
 
-        // Store the auth manager in the client
+		// Store the auth manager in the client
 		c.authManager = authManager
 
 		// Set the token provider to use the auth manager
-		c.httpClient.TokenProvider = func() string {
-			token, err := authManager.GetToken()
+		c.httpClient.TokenProvider = func(requestCtx context.Context) string {
+			token, err := authManager.GetToken(requestCtx)
 			if err != nil {
 				if c.httpClient.Debug {
 					fmt.Printf("Error getting token: %v\n", err)
@@ -173,7 +186,7 @@ func WithKeycloakAuth(username, password string) ClientOption {
 
 // WithDebug enables or disables debug output
 func WithDebug(debug bool) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		c.httpClient.Debug = debug
 		return nil
 	}
