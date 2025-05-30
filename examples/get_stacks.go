@@ -13,7 +13,7 @@ const debug = false
 
 func printStacks(Stacks []*enbuild.Stack) {
     for _, Stack := range Stacks {
-        fmt.Printf("ID: %v Name: %v\n", Stack.ID, Stack.Name)
+        fmt.Printf("ID: %v Name: %v Type: %v Status: %v\n", Stack.ID, Stack.Name, Stack.Type, Stack.Status)
     }
 }
 

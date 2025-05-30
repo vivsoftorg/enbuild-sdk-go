@@ -13,13 +13,13 @@ type Stack struct {
     CreatedOn  string   `json:"createdOn,omitempty"`
     Created_on string   `json:"created_on,omitempty"`
     UpdatedOn  string   `json:"updatedOn,omitempty"`
-    V          int            `json:"__v,omitempty"`
+    // V          int            `json:"__v,omitempty"`
     Logs       []StackLog     `json:"logs,omitempty"`
     // Project    *ProjectInfo   `json:"project,omitempty"`
     // Pipeline   []PipelineItem `json:"pipeline,omitempty"`
-    Pending    int            `json:"pending,omitempty"`
-    PermissionsSlug map[string]interface{} `json:"permissionsSlug,omitempty"`
-    Permissions     map[string]interface{} `json:"permissions,omitempty"`
+    // Pending    int            `json:"pending,omitempty"`
+    // PermissionsSlug map[string]interface{} `json:"permissionsSlug,omitempty"`
+    // Permissions     map[string]interface{} `json:"permissions,omitempty"`
 }
 
 type StackName struct {
@@ -31,7 +31,7 @@ type CatalogInfo struct {
     Slug   string      `json:"slug"`
     Type   string      `json:"type"`
     Name   string      `json:"name"`
-    Data   CatalogData `json:"data"`
+    // Data   CatalogData `json:"data"`
 }
 
 type CatalogData struct {
