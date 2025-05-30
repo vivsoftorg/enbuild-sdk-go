@@ -9,7 +9,7 @@ import (
     "github.com/vivsoftorg/enbuild-sdk-go/pkg/enbuild"
 )
 
-const debug = false
+const debug = true
 
 func printStacks(Stacks []*enbuild.Stack) {
     for _, Stack := range Stacks {
@@ -47,23 +47,17 @@ func createClient() (*enbuild.Client, error) {
 }
 
 func listAllStacks(client *enbuild.Client) {
-    fmt.Println("Listing all Stacks (page 0, limit 10):")
-    allStacks, err := client.Stacks.ListStacks(context.Background(), 0, 10, "")
+    page := 0
+    limit := 10
+    searchTerm := "juned_eks_gh"
+    fmt.Printf("Listing Stacks with page: %d, limit: %d, searchTerm: '%s'\n", page, limit, searchTerm)
+    allStacks, err := client.Stacks.ListStacks(context.Background(), page, limit, searchTerm)
     if err != nil {
         log.Fatalf("Error listing Stacks: %v", err)
     }
 
     fmt.Printf("Found: %d stacks\n", len(allStacks))
     printStacks(allStacks)
-
-    // Demonstrate parameter usage
-    fmt.Println("\nListing stacks with searchTerm 'test' (page 0, limit 5):")
-    searchedStacks, err := client.Stacks.ListStacks(context.Background(), 0, 5, "test")
-    if err != nil {
-        log.Fatalf("Error listing Stacks with search: %v", err)
-    }
-    fmt.Printf("Found: %d stacks with search term 'test'\n", len(searchedStacks))
-    printStacks(searchedStacks)
 }
 
 func main() {

@@ -37,9 +37,9 @@ type Stack struct {
     Type       string         `json:"type"`
     CreatedBy  string         `json:"createdBy"`
     UpdatedBy  string         `json:"updatedBy"`
-    CreatedOn  int64          `json:"createdOn"`
-    Created_on int64          `json:"created_on"`
-    UpdatedOn  int64          `json:"updatedOn"`
+    CreatedOn  interface{}          `json:"createdOn,omitempty"`
+    Created_on interface{}          `json:"created_on,omitempty"`
+    UpdatedOn  interface{}          `json:"updatedOn,omitempty"`
     V          int            `json:"__v"`
 }
 
@@ -65,7 +65,7 @@ type CatalogData struct {
     ReadmeFilePath    string         `json:"readme_file_path"`
     ValuesFolderPath  string         `json:"values_folder_path"`
     Ref               string         `json:"ref"`
-    Sops              bool           `json:"sops"`
+    Sops              bool           `json:"sops,omitempty"`
     ImagePath         string         `json:"image_path"`
     MultiSelect       bool           `json:"multi_select"`
     VCS               string         `json:"vcs"`
@@ -79,10 +79,10 @@ type CatalogData struct {
     Infrastructure    InfraData      `json:"infrastructure"`
     Configuration     interface{}    `json:"configuration"`
     CreatedBy2        string         `json:"createdBy"` // Note: duplicate json tag "createdBy"
-    CreatedOn         int64          `json:"createdOn"`
+    CreatedOn         interface{}          `json:"createdOn,omitempty"`
     Token             string         `json:"token"`
     ID2               int            `json:"id"` // Note: duplicate json tag "id"
-    UpdatedOn         int64          `json:"updatedOn"`
+    UpdatedOn         interface{}          `json:"updatedOn,omitempty"`
 }
 
 type ComponentCfg struct {
