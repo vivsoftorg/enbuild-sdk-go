@@ -4,7 +4,7 @@ A Go client library for accessing the ENBUILD API.
 
 ## Version
 
-Current version: 0.0.3
+Current version: 0.0.4
 
 ## Installation
 
@@ -62,42 +62,3 @@ See the [examples](./examples) directory for more usage patterns:
   Demonstrates listing all catalogs, filtering by VCS (`github`, `gitlab`), filtering by type, searching by name, and getting a catalog by ID.
 - **get_stacks.go**:  
   Shows how to list all stacks with pagination and search term.
-
-**Example: List all stacks**
-
-```go
-client, err := enbuild.NewClient(context.Background(), options...)
-if err != nil {
-    log.Fatalf("Error creating client: %v", err)
-}
-page := 0
-limit := 10
-searchTerm := ""
-stacks, err := client.Stacks.ListStacks(context.Background(), page, limit, searchTerm)
-if err != nil {
-    log.Fatalf("Error listing stacks: %v", err)
-}
-for _, stack := range stacks {
-    log.Printf("ID: %v Name: %v Type: %v Status: %v\n", stack.ID, stack.Name, stack.Type, stack.Status)
-}
-```
-
-**Example: List GitHub catalogs**
-
-```go
-githubCatalogs, err := client.Catalogs.ListCatalog(context.Background(), &enbuild.CatalogListOptions{
-    VCS: "github",
-})
-if err != nil {
-    log.Fatalf("Error listing GitHub catalogs: %v", err)
-}
-```
-
-**Example: Get a catalog by ID**
-
-```go
-catalog, err := client.Catalogs.GetCatalog(context.Background(), "catalog-id", &enbuild.CatalogListOptions{})
-if err != nil {
-    log.Fatalf("Error getting catalog: %v", err)
-}
-```
