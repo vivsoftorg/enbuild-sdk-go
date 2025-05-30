@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
     "fmt"
     "log"
     "os"
@@ -44,12 +45,12 @@ func createClient() (*enbuild.Client, error) {
         options = append(options, enbuild.WithKeycloakAuth(username, password))
     }
 
-    return enbuild.NewClient(options...)
+    return enbuild.NewClient(context.Background(), options...)
 }
 
 func listAllCatalogs(client *enbuild.Client) {
     fmt.Println("Listing all Catalogs:")
-    allCatalogs, err := client.Catalogs.ListCatalog()
+    allCatalogs, err := client.Catalogs.ListCatalog(context.Background())
     if err != nil {
         log.Fatalf("Error listing Catalogs: %v", err)
     }
@@ -58,7 +59,7 @@ func listAllCatalogs(client *enbuild.Client) {
 
 func listGitHubCatalogs(client *enbuild.Client) {
     fmt.Println("\nListing GitHub Catalogs:")
-    githubCatalogs, err := client.Catalogs.ListCatalog(&enbuild.CatalogListOptions{
+    githubCatalogs, err := client.Catalogs.ListCatalog(context.Background(), &enbuild.CatalogListOptions{
         VCS: "github",
     })
     if err != nil {
@@ -69,7 +70,7 @@ func listGitHubCatalogs(client *enbuild.Client) {
 
 func listGitLabCatalogs(client *enbuild.Client) {
     fmt.Println("\nListing GitLab Catalogs:")
-    gitlabCatalogs, err := client.Catalogs.ListCatalog(&enbuild.CatalogListOptions{
+    gitlabCatalogs, err := client.Catalogs.ListCatalog(context.Background(), &enbuild.CatalogListOptions{
         VCS: "gitlab",
     })
     if err != nil {
@@ -80,7 +81,7 @@ func listGitLabCatalogs(client *enbuild.Client) {
 
 func getCatalogByID(client *enbuild.Client, id string) {
     fmt.Printf("\nGetting catalog with ID %s:\n", id)
-    catalog, err := client.Catalogs.GetCatalog(id, &enbuild.CatalogListOptions{})
+    catalog, err := client.Catalogs.GetCatalog(context.Background(), id, &enbuild.CatalogListOptions{})
     if err != nil {
         log.Fatalf("Error getting catalog: %v", err)
     }
@@ -89,7 +90,7 @@ func getCatalogByID(client *enbuild.Client, id string) {
 
 func filterCatalogsByType(client *enbuild.Client) {
     fmt.Println("\nFiltering Catalogs by type 'terraform':")
-    terraformCatalogs, err := client.Catalogs.ListCatalog(&enbuild.CatalogListOptions{
+    terraformCatalogs, err := client.Catalogs.ListCatalog(context.Background(), &enbuild.CatalogListOptions{
         Type: "terraform",
     })
     if err != nil {
@@ -101,7 +102,7 @@ func filterCatalogsByType(client *enbuild.Client) {
 func searchCatalogsByName(client *enbuild.Client) {
     searchTerm := "Bang"
     fmt.Printf("\nSearching Catalogs with name containing '%s':\n", searchTerm)
-    searchResults, err := client.Catalogs.ListCatalog(&enbuild.CatalogListOptions{
+    searchResults, err := client.Catalogs.ListCatalog(context.Background(), &enbuild.CatalogListOptions{
         Name: searchTerm,
     })
     if err != nil {

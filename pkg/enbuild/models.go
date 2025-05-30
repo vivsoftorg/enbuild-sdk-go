@@ -37,9 +37,9 @@ type Stack struct {
     Type       string         `json:"type"`
     CreatedBy  string         `json:"createdBy"`
     UpdatedBy  string         `json:"updatedBy"`
-    CreatedOn  string         `json:"createdOn"`
-    Created_on string         `json:"created_on"`
-    UpdatedOn  string         `json:"updatedOn"`
+    CreatedOn  int64          `json:"createdOn"`
+    Created_on int64          `json:"created_on"`
+    UpdatedOn  int64          `json:"updatedOn"`
     V          int            `json:"__v"`
 }
 
@@ -78,11 +78,11 @@ type CatalogData struct {
     Components        []ComponentCfg `json:"components"`
     Infrastructure    InfraData      `json:"infrastructure"`
     Configuration     interface{}    `json:"configuration"`
-    CreatedBy2        string         `json:"createdBy"`
-    CreatedOn         string         `json:"createdOn"`
+    CreatedBy2        string         `json:"createdBy"` // Note: duplicate json tag "createdBy"
+    CreatedOn         int64          `json:"createdOn"`
     Token             string         `json:"token"`
-    ID2               int            `json:"id"`
-    UpdatedOn         string         `json:"updatedOn"`
+    ID2               int            `json:"id"` // Note: duplicate json tag "id"
+    UpdatedOn         int64          `json:"updatedOn"`
 }
 
 type ComponentCfg struct {
