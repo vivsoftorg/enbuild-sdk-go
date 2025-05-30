@@ -3,7 +3,7 @@ package enbuild
 type Stack struct {
     ID         string         `json:"_id,omitempty"`
     Name       string         `json:"name"`
-    Stack      StackName      `json:"stack"`
+    // Stack      StackName      `json:"stack"`
     Catalog    CatalogInfo    `json:"catalog"`
     Components []Component    `json:"components"`
     Status     string         `json:"status"`
