@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
     "fmt"
     "log"
     "os"
@@ -42,18 +43,27 @@ func createClient() (*enbuild.Client, error) {
         options = append(options, enbuild.WithKeycloakAuth(username, password))
     }
 
-    return enbuild.NewClient(options...)
+    return enbuild.NewClient(context.Background(), options...)
 }
 
 func listAllStacks(client *enbuild.Client) {
-    fmt.Println("Listing all Stacks:")
-    allStacks, err := client.Stacks.ListStacks()
+    fmt.Println("Listing all Stacks (page 0, limit 10):")
+    allStacks, err := client.Stacks.ListStacks(context.Background(), 0, 10, "")
     if err != nil {
         log.Fatalf("Error listing Stacks: %v", err)
     }
 
     fmt.Printf("Found: %d stacks\n", len(allStacks))
     printStacks(allStacks)
+
+    // Demonstrate parameter usage
+    fmt.Println("\nListing stacks with searchTerm 'test' (page 0, limit 5):")
+    searchedStacks, err := client.Stacks.ListStacks(context.Background(), 0, 5, "test")
+    if err != nil {
+        log.Fatalf("Error listing Stacks with search: %v", err)
+    }
+    fmt.Printf("Found: %d stacks with search term 'test'\n", len(searchedStacks))
+    printStacks(searchedStacks)
 }
 
 func main() {

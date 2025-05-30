@@ -1,32 +1,35 @@
 package enbuild
 
 import (
-	// "fmt"
+	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 	// "strings"
 )
 
-// List returns a list of Stacks.
-func (s *Enbuild) ListStacks(opts ...*Stack) ([]*Stack, error) {
-    // options := &Stack{}
-    // if len(opts) > 0 && opts[0] != nil {
-    //     options = opts[0]
-    // }
+// ListStacks returns a list of Stacks.
+// It accepts context, page, limit, and searchTerm for pagination and searching.
+func (s *Enbuild) ListStacks(ctx context.Context, page int, limit int, searchTerm string) ([]*Stack, error) {
+	// Construct the request path with query parameters
+	// Ensure searchTerm is URL-encoded to handle special characters
+	encodedSearchTerm := url.QueryEscape(searchTerm)
+	path := fmt.Sprintf("stacks?page=%d&limit=%d&search=%s", page, limit, encodedSearchTerm)
 
-    req, err := s.client.NewRequest(http.MethodGet, "stacks?page=0&limit=1&search=", nil)
-    if err != nil {
-        return nil, err
-    }
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
 
-    var resp struct {
-        Data []*Stack `json:"data"`
-    }
-    if _, err := s.client.Do(req, &resp); err != nil {
-        return nil, err
-    }
+	var resp struct {
+		Data []*Stack `json:"data"`
+	}
+	if _, err := s.client.Do(ctx, req, &resp); err != nil {
+		return nil, err
+	}
 
-    // Directly return the received data as it does not require any modification.
-    return resp.Data, nil
+	// Directly return the received data as it does not require any modification.
+	return resp.Data, nil
 }
 
 // // Get returns a single Stack by ID.

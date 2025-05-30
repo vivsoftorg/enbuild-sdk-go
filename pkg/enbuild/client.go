@@ -1,6 +1,7 @@
 package enbuild
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -34,7 +35,7 @@ type Client struct {
 }
 
 // ClientOption is a function that configures a Client
-type ClientOption func(*Client) error
+type ClientOption func(ctx context.Context, c *Client) error
 
 // NewEnbuild creates a new enbuild api Enbuild.
 func NewEnbuild(client *request.Client) *Enbuild {
@@ -42,7 +43,7 @@ func NewEnbuild(client *request.Client) *Enbuild {
 }
 
 // NewClient creates a new ENBUILD API client
-func NewClient(options ...ClientOption) (*Client, error) {
+func NewClient(ctx context.Context, options ...ClientOption) (*Client, error) {
 	// Get base URL from environment variable if provided
 	baseURLEnv := os.Getenv("ENBUILD_BASE_URL")
 	baseURLToUse := defaultBaseURL
@@ -70,7 +71,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 
 	// Apply options
 	for _, option := range options {
-		if err := option(c); err != nil {
+		if err := option(ctx, c); err != nil {
 			return nil, err
 		}
 	}
@@ -92,7 +93,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 
 		// Create auth manager with credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
-		if err := authManager.Initialize(); err != nil {
+		if err := authManager.Initialize(ctx); err != nil {
 			return nil, fmt.Errorf("failed to initialize authentication: %v", err)
 		}
 
@@ -100,8 +101,8 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		c.authManager = authManager
 
 		// Set the token provider to use the auth manager
-		c.httpClient.TokenProvider = func() string {
-			token, err := authManager.GetToken()
+		c.httpClient.TokenProvider = func(requestCtx context.Context) string {
+			token, err := authManager.GetToken(requestCtx)
 			if err != nil {
 				if c.httpClient.Debug {
 					fmt.Printf("Error getting token: %v\n", err)
@@ -121,7 +122,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 
 // WithBaseURL sets a custom base URL for the API
 func WithBaseURL(baseURL string) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		// Ensure the URL ends with the API version path
 		if !strings.HasSuffix(baseURL, strings.TrimPrefix(apiVersionPath, "/")) &&
 			!strings.Contains(baseURL, apiVersionPath) {
@@ -147,7 +148,7 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // WithTimeout sets a custom timeout for API requests
 func WithTimeout(timeout time.Duration) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		c.httpClient.HTTPClient.Timeout = timeout
 		return nil
 	}
@@ -155,12 +156,12 @@ func WithTimeout(timeout time.Duration) ClientOption {
 
 // WithKeycloakAuth sets the Keycloak authentication credentials
 func WithKeycloakAuth(username, password string) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		// Create auth manager with provided credentials
 		authManager := NewAuthManager(username, password, c.httpClient.Debug, c.httpClient.BaseURL.String())
 
 		// Initialize the auth manager
-		if err := authManager.Initialize(); err != nil {
+		if err := authManager.Initialize(ctx); err != nil {
 			return fmt.Errorf("failed to initialize authentication: %v", err)
 		}
 
@@ -168,8 +169,8 @@ func WithKeycloakAuth(username, password string) ClientOption {
 		c.authManager = authManager
 
 		// Set the token provider to use the auth manager
-		c.httpClient.TokenProvider = func() string {
-			token, err := authManager.GetToken()
+		c.httpClient.TokenProvider = func(requestCtx context.Context) string {
+			token, err := authManager.GetToken(requestCtx)
 			if err != nil {
 				if c.httpClient.Debug {
 					fmt.Printf("Error getting token: %v\n", err)
@@ -185,7 +186,7 @@ func WithKeycloakAuth(username, password string) ClientOption {
 
 // WithDebug enables or disables debug output
 func WithDebug(debug bool) ClientOption {
-	return func(c *Client) error {
+	return func(ctx context.Context, c *Client) error {
 		c.httpClient.Debug = debug
 		return nil
 	}
