@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://enbuild.vivplatform.io"
-	defaultTimeout = 30 * time.Second
-	apiVersionPath = "/enbuild-bk/api/v1/"
+	defaultBaseURL    = "https://enbuild.vivplatform.io"
+	defaultTimeout    = 30 * time.Second
+	apiVersionPath    = "/enbuild-bk/api/v1/"
 	adminSettingsPath = "/enbuild-user/api/v1/adminSettings"
 )
 
@@ -165,7 +165,7 @@ func WithKeycloakAuth(username, password string) ClientOption {
 			return fmt.Errorf("failed to initialize authentication: %v", err)
 		}
 
-        // Store the auth manager in the client
+		// Store the auth manager in the client
 		c.authManager = authManager
 
 		// Set the token provider to use the auth manager

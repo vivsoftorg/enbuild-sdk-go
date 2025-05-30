@@ -26,4 +26,3 @@ func (s *Enbuild) ListStacks(ctx context.Context, page int, limit int, searchTer
 	}
 	return resp.Data, nil
 }
-

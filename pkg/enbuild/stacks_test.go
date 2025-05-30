@@ -23,14 +23,14 @@ const (
 
 func TestListStacks(t *testing.T) {
 	type testCase struct {
-		name               string
-		page               int
-		limit              int
-		searchTerm         string
-		mockServerHandler  func(w http.ResponseWriter, r *http.Request)
-		expectedStacks     []*enbuild.Stack
-		expectError        bool
-		expectedErrorMsg   string
+		name              string
+		page              int
+		limit             int
+		searchTerm        string
+		mockServerHandler func(w http.ResponseWriter, r *http.Request)
+		expectedStacks    []*enbuild.Stack
+		expectError       bool
+		expectedErrorMsg  string
 	}
 
 	testCases := []testCase{
@@ -146,7 +146,7 @@ func TestListStacks(t *testing.T) {
 
 			// Must use context.Background() for NewClient as per its new signature
 			ctx := context.Background()
-			
+
 			// Client setup - ensure BaseURL is correctly set for the test server
 			// The enbuild.NewClient will append the apiVersionPath internally if not present.
 			// So we give it server.URL which is like "http://127.0.0.1:PORT"
