@@ -7,7 +7,18 @@ import (
 	"net/url"
 )
 
-// ListStacks returns a list of Stacks.
+// DeleteStack deletes a stack by ID.
+func (s *Enbuild) DeleteStack(ctx context.Context, id string) error {
+	path := fmt.Sprintf("stacks/%s", id)
+
+	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.client.Do(ctx, req, nil)
+	return err
+}
 // It accepts context, page, limit, and searchTerm for pagination and searching.
 func (s *Enbuild) ListStacks(ctx context.Context, page int, limit int, searchTerm string) ([]*Stack, error) {
 	encodedSearchTerm := url.QueryEscape(searchTerm)
