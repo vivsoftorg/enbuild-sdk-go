@@ -27,11 +27,10 @@ type StackName struct {
 }
 
 type CatalogInfo struct {
-	ID   int    `json:"id"`
-	Slug string `json:"slug"`
-	Type string `json:"type"`
-	Name string `json:"name"`
-	// Data   CatalogData `json:"data"`
+	ID   interface{} `json:"id"`
+	Slug string      `json:"slug"`
+	Type string      `json:"type"`
+	Name string      `json:"name"`
 }
 
 type CatalogData struct {
